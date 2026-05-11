@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { agentQuery } from '@/lib/agent'
 import { getSchemaContext } from '@/lib/schema-cache'
+import { getCatalog, catalogToPromptContext } from '@/lib/catalog-cache'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -21,7 +22,7 @@ const TOOLS: Anthropic.Tool[] = [
   },
 ]
 
-function buildSystemPrompt(schemaContext: string): string {
+function buildSystemPrompt(schemaContext: string, catalogContext: string): string {
   return `Você é um analista de dados sênior da Prefeitura de Arujá (SP).
 Seu trabalho é RESPONDER PERGUNTAS DE NEGÓCIO com dados reais do banco Sybase IQ.
 
@@ -65,7 +66,8 @@ COMO RESPONDER:
 6. Se o dado não existir, diga claramente qual tabela foi consultada e o que encontrou
 
 ══════════════════════════════════════════
-SCHEMA COMPLETO — pref_aruja_sp:
+${catalogContext ? catalogContext + '\n\n' : '⚠️  Catálogo semântico não gerado ainda. Acesse /catalogo para gerar.\n\n'}══════════════════════════════════════════
+SCHEMA TÉCNICO COMPLETO — pref_aruja_sp:
 ══════════════════════════════════════════
 ${schemaContext}
 ══════════════════════════════════════════`
@@ -88,7 +90,9 @@ export async function POST(req: NextRequest) {
   async function run() {
     try {
       const schemaContext = await getSchemaContext(forceRefreshSchema ?? false)
-      const systemPrompt = buildSystemPrompt(schemaContext)
+      const catalog = getCatalog()
+      const catalogContext = catalog ? catalogToPromptContext(catalog) : ''
+      const systemPrompt = buildSystemPrompt(schemaContext, catalogContext)
 
       const msgs: Anthropic.MessageParam[] = [...messages]
       let queryCount = 0

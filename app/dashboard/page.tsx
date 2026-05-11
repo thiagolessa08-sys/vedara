@@ -130,6 +130,16 @@ export default function DashboardPage() {
             </span>
           </div>
           <Link
+            href="/catalogo"
+            className="flex items-center gap-1.5 text-blue-300 hover:text-white text-sm border border-blue-700 hover:border-blue-400 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Catálogo
+          </Link>
+          <Link
             href="/chat"
             className="flex items-center gap-1.5 bg-blue-700 hover:bg-blue-600 text-white text-sm px-3 py-1.5 rounded-lg transition-colors"
           >
