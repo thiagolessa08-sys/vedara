@@ -32,8 +32,11 @@ export default function CatalogoPage() {
     try {
       const res = await fetch('/api/catalog/build', { method: 'POST' })
       if (!res.ok) {
-        const err = await res.json()
-        setLog(prev => [...prev, `Erro: ${err.error}`])
+        // Lê como texto para evitar crash quando o servidor retorna HTML
+        const body = await res.text()
+        let msg = `HTTP ${res.status}`
+        try { msg = JSON.parse(body).error ?? msg } catch { msg = body.slice(0, 200) }
+        setLog(prev => [...prev, `❌ ${msg}`])
         return
       }
 
@@ -50,8 +53,11 @@ export default function CatalogoPage() {
 
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue
-          const event = JSON.parse(line.slice(6))
-          if (event.msg) setLog(prev => [...prev, event.msg])
+          const raw = line.slice(6).trim()
+          if (!raw) continue
+          let event: Record<string, unknown>
+          try { event = JSON.parse(raw) } catch { continue }
+          if (event.msg) setLog(prev => [...prev, String(event.msg)])
           if (event.error) setLog(prev => [...prev, `❌ ${event.error}`])
           if (event.done) {
             setLog(prev => [...prev, `✅ Catálogo gerado com ${event.tabelas} tabelas!`])
@@ -60,7 +66,7 @@ export default function CatalogoPage() {
         }
       }
     } catch (e) {
-      setLog(prev => [...prev, `Erro de conexão: ${String(e)}`])
+      setLog(prev => [...prev, `❌ ${String(e)}`])
     } finally {
       setBuilding(false)
     }
