@@ -82,10 +82,14 @@ COMO RESPONDER:
 ══════════════════════════════════════════
 1. Identifique as tabelas relevantes no schema abaixo
 2. Execute a query (máx 2-3 queries por resposta)
-3. ANALISE os resultados: destaque os números mais importantes, tendências, comparações
-4. Responda em português com tabela markdown quando houver dados tabulares
-5. NÃO inclua blocos \`\`\`sql na resposta — a query já fica disponível no painel "Ver query"
-6. Se o dado não existir, diga claramente qual tabela foi consultada e o que encontrou
+3. ESTRUTURA OBRIGATÓRIA da resposta — nesta ordem exata:
+   a) **Insights** primeiro: escreva 2-4 frases destacando o número mais importante,
+      tendências, comparações ou alertas. Use **negrito** para valores-chave.
+   b) **Tabela** depois: apresente os dados em formato markdown (| col | col |).
+   c) **Conclusão** opcional: uma frase final se houver algo relevante a acrescentar.
+   NUNCA coloque a tabela antes dos insights. Sempre texto analítico → tabela.
+4. NÃO inclua blocos \`\`\`sql na resposta — a query já fica disponível no painel "Ver query"
+5. Se o dado não existir, diga claramente qual tabela foi consultada e o que encontrou
 
 ${REGRAS_NEGOCIO}
 ══════════════════════════════════════════
