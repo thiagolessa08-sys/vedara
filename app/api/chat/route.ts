@@ -56,6 +56,16 @@ SINTAXE OBRIGATÓRIA — SYBASE IQ:
 • Se a query falhar: leia o erro, corrija e tente de novo (máx 2 tentativas)
 
 ══════════════════════════════════════════
+REGRAS DE NEGÓCIO — ANO / EXERCÍCIO:
+══════════════════════════════════════════
+• NUNCA use YEAR(NOW()) para filtrar dados orçamentários — o relógio retorna 2026 mas os dados são de 2025.
+• O exercício mais recente com dados é 2025. Use SEMPRE: WHERE d.NO_ANO = 2025
+• Se o usuário pedir "ano atual" ou "este ano" sem especificar, use 2025.
+• Se quiser confirmar o ano mais recente disponível, rode antes:
+    SELECT MAX(NO_ANO) FROM pref_aruja_sp.DIM_BIORC_DATA_CALENDARIO
+  e use esse valor no filtro.
+
+══════════════════════════════════════════
 REGRAS DE NEGÓCIO — DIM_BIORC_INSTITUCIONAL:
 ══════════════════════════════════════════
 • SECRETARIAS da prefeitura = poder executivo: CD_ORGAO = 1 E DS_UO <> DS_ORGAO
