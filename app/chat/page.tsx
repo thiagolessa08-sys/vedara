@@ -122,7 +122,7 @@ function TableAndChart({ headers, rows }: { headers: string[]; rows: string[][] 
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="label" tick={{ fontSize: 10 }} />
             <YAxis tickFormatter={formatTick} tick={{ fontSize: 10 }} width={70} />
-            <Tooltip formatter={(v: number) => formatTick(v)} />
+            <Tooltip formatter={(v) => formatTick(Number(v ?? 0))} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             {valueCols.map((ci, idx) => (
               <Line
@@ -140,7 +140,7 @@ function TableAndChart({ headers, rows }: { headers: string[]; rows: string[][] 
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis type="number" tickFormatter={formatTick} tick={{ fontSize: 10 }} />
             <YAxis dataKey="label" type="category" tick={{ fontSize: 10 }} width={yAxisWidth} />
-            <Tooltip formatter={(v: number) => formatTick(v)} />
+            <Tooltip formatter={(v) => formatTick(Number(v ?? 0))} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             {valueCols.map((ci, idx) => (
               <Bar key={ci} dataKey={headers[ci]} fill={CHART_COLORS[idx % CHART_COLORS.length]} radius={[0, 3, 3, 0]} />
@@ -151,7 +151,7 @@ function TableAndChart({ headers, rows }: { headers: string[]; rows: string[][] 
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
             <XAxis dataKey="label" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} />
             <YAxis tickFormatter={formatTick} tick={{ fontSize: 10 }} width={70} />
-            <Tooltip formatter={(v: number) => formatTick(v)} />
+            <Tooltip formatter={(v) => formatTick(Number(v ?? 0))} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             {valueCols.map((ci, idx) => (
               <Bar key={ci} dataKey={headers[ci]} fill={CHART_COLORS[idx % CHART_COLORS.length]} radius={[3, 3, 0, 0]} />
