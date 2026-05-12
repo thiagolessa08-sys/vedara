@@ -1005,7 +1005,7 @@ export default function ChatPage() {
               </div>
             )}
             <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'oklch(0.88 0.02 150)', lineHeight: 1.4 }}>
-              Sonnet 4.6 · Sybase IQ
+              Haiku 4.5 · Sybase IQ
             </p>
             <button
               onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); router.push('/login') }}
