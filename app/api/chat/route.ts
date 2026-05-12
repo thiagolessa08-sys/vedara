@@ -83,7 +83,7 @@ COMO RESPONDER:
 2. Execute a query (máx 2-3 queries por resposta)
 3. ANALISE os resultados: destaque os números mais importantes, tendências, comparações
 4. Responda em português com tabela markdown quando houver dados tabulares
-5. Mostre a query SQL usada em bloco \`\`\`sql para o usuário poder reutilizar
+5. NÃO inclua blocos \`\`\`sql na resposta — a query já fica disponível no painel "Ver query"
 6. Se o dado não existir, diga claramente qual tabela foi consultada e o que encontrou
 
 ${REGRAS_NEGOCIO}
