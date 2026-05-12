@@ -530,7 +530,7 @@ export default function DashboardPage() {
 
   return (
     <div className="k-root" data-theme={theme}>
-      <style>{CSS}</style>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── SIDEBAR ── */}
       <aside className="k-sidebar">
