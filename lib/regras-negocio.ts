@@ -45,7 +45,16 @@ Query modelo CORRETA para receita com as três colunas:
 
 NUNCA retorne apenas um valor total de receita sem mostrar bruta e líquida separadamente.
 
-## REGRA 2 — COLUNAS CORRETAS de DIM_BIORC_NATUREZA_RECEITA
+## REGRA 2 — SINÔNIMOS: arrecadação = receita
+
+"Arrecadação", "receita", "o que a prefeitura arrecadou", "quanto entrou no caixa" e
+"quanto foi arrecadado" são todos sinônimos — todos se referem à tabela
+FATO_BIORC_EXECUCAO_RECEITA e à coluna VL_ARRECADACAO_RECEITA.
+
+Quando o usuário usar qualquer uma dessas palavras, aplique exatamente as mesmas
+regras da REGRA 1 (bruta / deduções / líquida).
+
+## REGRA 3 — COLUNAS CORRETAS de DIM_BIORC_NATUREZA_RECEITA
 
 A tabela DIM_BIORC_NATUREZA_RECEITA NÃO tem coluna "DS_CATEGORIA_RECEITA".
 Use SEMPRE os nomes exatos abaixo:
