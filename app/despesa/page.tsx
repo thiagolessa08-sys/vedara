@@ -222,13 +222,13 @@ const CSS = `
 
 /* Donut */
 .kdes-donut-wrap  { display: flex; align-items: center; gap: 24px; }
-.kdes-donut-chart { position: relative; flex-shrink: 0; width: 160px; height: 160px; }
+.kdes-donut-chart { position: relative; flex-shrink: 0; width: 220px; height: 220px; }
 .kdes-donut-inner {
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%); text-align: center; pointer-events: none;
 }
-.kdes-donut-val { font-size: 13px; font-weight: 800; color: var(--ink); line-height: 1.3; }
-.kdes-donut-lbl { font-size: 9.5px; color: var(--ink-3); font-weight: 500; }
+.kdes-donut-val { font-size: 16px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+.kdes-donut-lbl { font-size: 11px; color: var(--ink-3); font-weight: 500; }
 .kdes-donut-legend { display: flex; flex-direction: column; gap: 14px; flex: 1; }
 .kdes-donut-leg-row { display: flex; align-items: center; gap: 8px; }
 .kdes-donut-leg-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
@@ -491,12 +491,12 @@ export default function DespesaPage() {
             {dados ? (
               <div className="kdes-donut-wrap">
                 <div className="kdes-donut-chart">
-                  <ResponsiveContainer width={160} height={160}>
+                  <ResponsiveContainer width={220} height={220}>
                     <PieChart>
                       <Pie
                         data={dados.categorias}
                         cx="50%" cy="50%"
-                        innerRadius={46} outerRadius={74}
+                        innerRadius={66} outerRadius={100}
                         dataKey="valor" strokeWidth={0}
                       >
                         {dados.categorias.map((_, i) => (
