@@ -1044,6 +1044,10 @@ export default function ChatPage() {
         <div>
           <div className="kc-nav-label">Menu</div>
           <nav className="kc-nav">
+            <Link href="/orcamento">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15V9M12 15V5M16 15v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+              Orçamento
+            </Link>
             <Link href="/dashboard">
               <svg viewBox="0 0 24 24" fill="none">
                 <path d="M3 13l9-9 9 9M5 11v9h14v-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
