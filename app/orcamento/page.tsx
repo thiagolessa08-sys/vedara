@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -52,35 +52,35 @@ const CSS = `
 .kor-root[data-theme="light"] {
   --bg: oklch(0.97 0.008 95);
   --surface: #ffffff;
-  --surface-2: oklch(0.96 0.01 130);
-  --ink: oklch(0.18 0.02 150);
-  --ink-2: oklch(0.42 0.02 150);
-  --ink-3: oklch(0.62 0.015 150);
-  --line: oklch(0.92 0.012 130);
-  --line-2: oklch(0.88 0.015 130);
+  --surface-2: oklch(0.96 0.01 240);
+  --ink: oklch(0.18 0.02 240);
+  --ink-2: oklch(0.42 0.02 240);
+  --ink-3: oklch(0.62 0.015 240);
+  --line: oklch(0.92 0.012 240);
+  --line-2: oklch(0.88 0.015 240);
   --bar-track: oklch(0.91 0.01 220);
-  --green: oklch(0.48 0.11 155);
-  --green-deep: oklch(0.30 0.07 155);
-  --green-ink: oklch(0.22 0.06 155);
-  --green-soft: oklch(0.94 0.03 150);
+  --green: oklch(0.52 0.20 264);
+  --green-deep: oklch(0.32 0.14 264);
+  --green-ink: oklch(0.20 0.10 264);
+  --green-soft: oklch(0.94 0.04 240);
   --radius: 22px;
   --radius-sm: 14px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.07);
 }
 .kor-root[data-theme="dark"] {
   --bg: oklch(0.16 0.012 150);
-  --surface: oklch(0.21 0.014 150);
-  --surface-2: oklch(0.26 0.014 150);
+  --surface: oklch(0.21 0.014 240);
+  --surface-2: oklch(0.26 0.014 240);
   --ink: oklch(0.96 0.008 95);
-  --ink-2: oklch(0.78 0.01 130);
-  --ink-3: oklch(0.58 0.012 130);
-  --line: oklch(0.28 0.014 150);
-  --line-2: oklch(0.32 0.014 150);
+  --ink-2: oklch(0.78 0.01 240);
+  --ink-3: oklch(0.58 0.012 240);
+  --line: oklch(0.28 0.014 240);
+  --line-2: oklch(0.32 0.014 240);
   --bar-track: oklch(0.30 0.01 220);
-  --green: oklch(0.64 0.13 155);
-  --green-deep: oklch(0.26 0.06 155);
-  --green-ink: oklch(0.22 0.06 155);
-  --green-soft: oklch(0.30 0.05 150);
+  --green: oklch(0.64 0.18 264);
+  --green-deep: oklch(0.26 0.10 264);
+  --green-ink: oklch(0.20 0.10 264);
+  --green-soft: oklch(0.28 0.06 240);
   --radius: 22px;
   --radius-sm: 14px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,.3);

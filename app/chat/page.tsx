@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -29,8 +29,8 @@ const SUGESTOES = [
 ]
 
 const CHART_COLORS = [
-  'oklch(0.48 0.11 155)',
-  'oklch(0.65 0.12 150)',
+  'oklch(0.52 0.20 264)',
+  'oklch(0.62 0.18 240)',
   'oklch(0.78 0.13 75)',
   'oklch(0.72 0.14 25)',
   'oklch(0.58 0.10 240)',
@@ -55,22 +55,22 @@ const CSS = `
 .kc-root[data-theme="light"] {
   --bg: oklch(0.97 0.008 95);
   --surface: #ffffff;
-  --surface-2: oklch(0.96 0.01 130);
-  --ink: oklch(0.18 0.02 150);
-  --ink-2: oklch(0.42 0.02 150);
-  --ink-3: oklch(0.62 0.015 150);
-  --line: oklch(0.92 0.012 130);
-  --line-2: oklch(0.88 0.015 130);
-  --green: oklch(0.48 0.11 155);
-  --green-deep: oklch(0.30 0.07 155);
-  --green-ink: oklch(0.22 0.06 155);
-  --green-soft: oklch(0.94 0.03 150);
+  --surface-2: oklch(0.96 0.01 240);
+  --ink: oklch(0.18 0.02 240);
+  --ink-2: oklch(0.42 0.02 240);
+  --ink-3: oklch(0.62 0.015 240);
+  --line: oklch(0.92 0.012 240);
+  --line-2: oklch(0.88 0.015 240);
+  --green: oklch(0.52 0.20 264);
+  --green-deep: oklch(0.32 0.14 264);
+  --green-ink: oklch(0.20 0.10 264);
+  --green-soft: oklch(0.94 0.04 240);
   --amber: oklch(0.78 0.13 75);
   --rose: oklch(0.72 0.14 25);
   --radius: 22px;
   --radius-sm: 14px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
-  --badge-bg: oklch(0.88 0.04 150);
+  --badge-bg: oklch(0.88 0.06 240);
   --msg-user-bg: var(--green);
   --msg-user-ink: #fff;
   --msg-ai-bg: var(--surface);
@@ -80,23 +80,23 @@ const CSS = `
 }
 .kc-root[data-theme="dark"] {
   --bg: oklch(0.16 0.012 150);
-  --surface: oklch(0.21 0.014 150);
-  --surface-2: oklch(0.26 0.014 150);
+  --surface: oklch(0.21 0.014 240);
+  --surface-2: oklch(0.26 0.014 240);
   --ink: oklch(0.96 0.008 95);
-  --ink-2: oklch(0.78 0.01 130);
-  --ink-3: oklch(0.58 0.012 130);
-  --line: oklch(0.28 0.014 150);
-  --line-2: oklch(0.32 0.014 150);
-  --green: oklch(0.64 0.13 155);
-  --green-deep: oklch(0.26 0.06 155);
-  --green-ink: oklch(0.22 0.06 155);
-  --green-soft: oklch(0.30 0.05 150);
+  --ink-2: oklch(0.78 0.01 240);
+  --ink-3: oklch(0.58 0.012 240);
+  --line: oklch(0.28 0.014 240);
+  --line-2: oklch(0.32 0.014 240);
+  --green: oklch(0.64 0.18 264);
+  --green-deep: oklch(0.26 0.10 264);
+  --green-ink: oklch(0.20 0.10 264);
+  --green-soft: oklch(0.28 0.06 240);
   --amber: oklch(0.78 0.13 75);
   --rose: oklch(0.72 0.14 25);
   --radius: 22px;
   --radius-sm: 14px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
-  --badge-bg: oklch(0.34 0.06 150);
+  --badge-bg: oklch(0.34 0.08 240);
   --msg-user-bg: var(--green);
   --msg-user-ink: oklch(0.14 0.02 150);
   --msg-ai-bg: var(--surface-2);
@@ -269,7 +269,7 @@ const CSS = `
   gap: 5px;
   font-size: 11.5px;
   font-weight: 600;
-  color: oklch(0.55 0.15 145);
+  color: oklch(0.55 0.20 264);
 }
 .kc-logout {
   font-size: 12.5px;
@@ -393,9 +393,9 @@ const CSS = `
   color: oklch(0.80 0.12 80);
 }
 .kc-tool.ok {
-  background: oklch(0.96 0.02 150);
-  border: 1px solid oklch(0.9 0.04 150);
-  color: oklch(0.38 0.1 150);
+  background: oklch(0.96 0.02 240);
+  border: 1px solid oklch(0.9 0.04 240);
+  color: oklch(0.40 0.16 240);
 }
 .kc-root[data-theme="dark"] .kc-tool.ok {
   background: oklch(0.28 0.06 150);
@@ -740,7 +740,7 @@ function TableAndChart({ headers, rows }: { headers: string[]; rows: string[][] 
                     cursor: 'pointer', fontFamily: 'inherit',
                     fontSize: '11.5px', fontWeight: 600,
                     transition: 'all .12s',
-                    boxShadow: chartType === opt.type ? '0 2px 6px oklch(0.48 0.11 155 / .3)' : 'none',
+                    boxShadow: chartType === opt.type ? '0 2px 6px oklch(0.52 0.20 264 / .3)' : 'none',
                   }}
                 >
                   {opt.icon}
@@ -1128,7 +1128,7 @@ export default function ChatPage() {
           <div className="kc-topbar-right">
             {schemaLoaded && (
               <div className="kc-cache-dot">
-                <span style={{ width: 7, height: 7, borderRadius: '999px', background: 'oklch(0.55 0.15 145)', display: 'inline-block' }} />
+                <span style={{ width: 7, height: 7, borderRadius: '999px', background: 'oklch(0.55 0.20 264)', display: 'inline-block' }} />
                 Schema em cache
               </div>
             )}
