@@ -88,8 +88,8 @@ const CSS = `
 
 /* ── SIDEBAR ── */
 .kor-sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--line);
+  background: oklch(0.20 0.10 264);
+  border-right: 1px solid oklch(0.26 0.12 264);
   padding: 24px 18px 20px;
   display: flex; flex-direction: column; gap: 22px;
   position: sticky; top: 0; height: 100vh; overflow: hidden;
@@ -99,20 +99,20 @@ const CSS = `
   width: 38px; height: 38px; background: var(--green); border-radius: 12px;
   display: grid; place-items: center; flex-shrink: 0; color: #fff;
 }
-.kor-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
-.kor-brand-text .t2 { font-size: 10.5px; color: var(--ink-3); font-weight: 500; }
+.kor-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+.kor-brand-text .t2 { font-size: 10.5px; color: rgba(255,255,255,0.55); font-weight: 500; }
 .kor-nav-label {
-  font-size: 10.5px; letter-spacing: 0.14em; color: var(--ink-3);
+  font-size: 10.5px; letter-spacing: 0.14em; color: rgba(255,255,255,0.45);
   font-weight: 700; padding: 0 10px; text-transform: uppercase; margin-bottom: 6px;
 }
 .kor-nav { display: flex; flex-direction: column; gap: 2px; }
 .kor-nav a {
   display: flex; align-items: center; gap: 10px; padding: 10px;
-  border-radius: 10px; color: var(--ink-2); text-decoration: none;
+  border-radius: 10px; color: rgba(255,255,255,0.70); text-decoration: none;
   font-size: 13.5px; font-weight: 500; transition: background .12s;
 }
-.kor-nav a:hover { background: var(--green-soft); color: var(--ink); }
-.kor-nav a.active { background: var(--green); color: #fff; }
+.kor-nav a:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.kor-nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 .kor-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* ── MAIN ── */

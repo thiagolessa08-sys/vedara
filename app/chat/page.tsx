@@ -107,8 +107,8 @@ const CSS = `
 
 /* SIDEBAR */
 .kc-sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--line);
+  background: oklch(0.20 0.10 264);
+  border-right: 1px solid oklch(0.26 0.12 264);
   padding: 24px 18px 20px;
   display: flex;
   flex-direction: column;
@@ -131,13 +131,13 @@ const CSS = `
   color: #fff;
 }
 .kc-brand-text { line-height: 1.2; }
-.kc-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
-.kc-brand-text .t2 { font-size: 10.5px; color: var(--ink-3); font-weight: 500; }
+.kc-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+.kc-brand-text .t2 { font-size: 10.5px; color: rgba(255,255,255,0.55); font-weight: 500; }
 
 .kc-nav-label {
   font-size: 10.5px;
   letter-spacing: 0.14em;
-  color: var(--ink-3);
+  color: rgba(255,255,255,0.45);
   font-weight: 700;
   padding: 0 10px;
   text-transform: uppercase;
@@ -150,7 +150,7 @@ const CSS = `
   gap: 10px;
   padding: 10px 10px;
   border-radius: 10px;
-  color: var(--ink-2);
+  color: rgba(255,255,255,0.70);
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
@@ -162,8 +162,8 @@ const CSS = `
   font-family: inherit;
   transition: background .12s;
 }
-.kc-nav a:hover, .kc-nav button:hover { background: var(--green-soft); color: var(--ink); }
-.kc-nav a.active { background: var(--green); color: #fff; }
+.kc-nav a:hover, .kc-nav button:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.kc-nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 .kc-nav a svg, .kc-nav button svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Suggestions */
@@ -195,7 +195,8 @@ const CSS = `
   line-height: 1.4;
   transition: background .12s, border-color .12s;
 }
-.kc-sugg-btn:hover { background: var(--green-soft); border-color: var(--green); color: var(--ink); }
+.kc-sugg-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.70); }
+.kc-sugg-btn:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.25); color: #fff; }
 
 /* Theme toggle */
 .kc-theme-toggle {

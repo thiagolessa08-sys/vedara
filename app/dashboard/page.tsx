@@ -80,8 +80,8 @@ const CSS = `
 
 /* SIDEBAR */
 .k-sidebar {
-  background: var(--surface);
-  border-right: 1px solid var(--line);
+  background: oklch(0.20 0.10 264);
+  border-right: 1px solid oklch(0.26 0.12 264);
   padding: 24px 18px 20px;
   display: flex;
   flex-direction: column;
@@ -106,13 +106,13 @@ const CSS = `
   color: #fff;
 }
 .k-brand-text { line-height: 1.2; }
-.k-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
-.k-brand-text .t2 { font-size: 10.5px; color: var(--ink-3); font-weight: 500; }
+.k-brand-text .t1 { font-size: 13.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+.k-brand-text .t2 { font-size: 10.5px; color: rgba(255,255,255,0.55); font-weight: 500; }
 
 .k-nav-label {
   font-size: 10.5px;
   letter-spacing: 0.14em;
-  color: var(--ink-3);
+  color: rgba(255,255,255,0.45);
   font-weight: 700;
   padding: 0 10px;
   text-transform: uppercase;
@@ -125,7 +125,7 @@ const CSS = `
   gap: 10px;
   padding: 10px 10px;
   border-radius: 10px;
-  color: var(--ink-2);
+  color: rgba(255,255,255,0.70);
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
@@ -137,8 +137,8 @@ const CSS = `
   font-family: inherit;
   transition: background .12s;
 }
-.k-nav a:hover, .k-nav button:hover { background: var(--green-soft); color: var(--ink); }
-.k-nav a.active { background: var(--green); color: #fff; }
+.k-nav a:hover, .k-nav button:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.k-nav a.active { background: rgba(255,255,255,0.18); color: #fff; }
 .k-nav a svg, .k-nav button svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 /* Table list inside sidebar */
@@ -165,12 +165,13 @@ const CSS = `
   color: var(--ink-3);
   transition: color .12s, background .12s;
 }
-.k-reload-btn:hover { background: var(--green-soft); color: var(--green); }
+.k-reload-btn:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.k-reload-btn { color: rgba(255,255,255,0.5); }
 .k-table-list {
   flex: 1;
   overflow-y: auto;
   border-radius: 12px;
-  background: var(--surface-2);
+  background: rgba(255,255,255,0.07);
   padding: 4px;
 }
 .k-table-list::-webkit-scrollbar { width: 4px; }
@@ -194,8 +195,9 @@ const CSS = `
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.k-table-item:hover { background: var(--green-soft); color: var(--ink); }
-.k-table-item.selected { background: var(--green); color: #fff; }
+.k-table-item { color: rgba(255,255,255,0.70); }
+.k-table-item:hover { background: rgba(255,255,255,0.10); color: #fff; }
+.k-table-item.selected { background: rgba(255,255,255,0.18); color: #fff; }
 .k-table-item svg { width: 13px; height: 13px; flex-shrink: 0; opacity: .6; }
 
 /* MAIN */
