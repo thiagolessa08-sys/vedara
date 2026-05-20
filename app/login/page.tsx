@@ -44,7 +44,6 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-800">Analytics Municipal</h1>
-          <p className="text-gray-500 text-sm mt-1">Prefeitura de Arujá</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
