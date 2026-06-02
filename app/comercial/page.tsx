@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -32,6 +32,10 @@ function nomeMes(anomes: string): string {
   const mes = parseInt(anomes.slice(4), 10)
   return `${m[mes - 1]}/${ano.slice(2)}`
 }
+function fmtDataBR(iso: string): string {
+  const [a, m, d] = iso.split('-')
+  return `${d}/${m}/${a}`
+}
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
@@ -62,7 +66,7 @@ const CSS = `
 
 .kcom-main { padding: 26px 30px 48px; display: flex; flex-direction: column; gap: 20px; min-width: 0; overflow-y: auto; }
 
-.kcom-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.kcom-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .kcom-title {
   font-family: 'Instrument Serif', serif;
   font-size: 38px; font-weight: 400; letter-spacing: -0.02em;
@@ -74,9 +78,35 @@ const CSS = `
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 .kcom-sub { font-size: 13px; color: var(--ink-3); margin: 7px 0 0; }
+
+/* Filtro de datas */
+.kcom-filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.kcom-date-group {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 6px 10px;
+}
+.kcom-date-group label { font-size: 11px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .03em; }
+.kcom-date-input {
+  border: 0; background: transparent; font-family: inherit;
+  font-size: 12.5px; color: var(--ink); font-weight: 600;
+  cursor: pointer; outline: none; color-scheme: light;
+}
+.kcom-presets { display: flex; gap: 4px; }
+.kcom-preset {
+  font-size: 12px; font-weight: 600; padding: 7px 12px;
+  border-radius: 9px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink-2);
+  cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.kcom-preset:hover { background: var(--surface-2); }
+.kcom-preset.active {
+  background: linear-gradient(135deg, var(--grad-a), var(--grad-c));
+  color: #fff; border-color: transparent;
+}
 .kcom-refresh {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  padding: 8px 14px; border-radius: 9px; font-size: 12.5px; font-weight: 600;
   cursor: pointer; font-family: inherit; border: 1px solid var(--line);
   background: var(--surface); color: var(--ink-2); transition: all .12s;
 }
@@ -103,6 +133,7 @@ const CSS = `
 .kcom-chip.up   { background: #dcfce7; color: #16a34a; }
 .kcom-chip.down { background: #fee2e2; color: #dc2626; }
 .kcom-kpi.hero .kcom-chip.up { background: rgba(255,255,255,.22); color: #fff; }
+.kcom-kpi.hero .kcom-chip.down { background: rgba(255,255,255,.22); color: #fff; }
 
 /* Cards */
 .kcom-card {
@@ -131,6 +162,7 @@ const CSS = `
 .kcom-rank-bar-track { height: 6px; border-radius: 999px; background: var(--surface-2); margin-top: 5px; overflow: hidden; }
 .kcom-rank-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--grad-a), var(--grad-c)); }
 .kcom-rank-val { font-size: 12.5px; font-weight: 800; color: var(--ink); flex-shrink: 0; text-align: right; }
+.kcom-empty { padding: 30px 10px; text-align: center; font-size: 12.5px; color: var(--ink-3); }
 
 /* Funil */
 .kcom-funil { display: flex; flex-direction: column; gap: 10px; }
@@ -138,7 +170,7 @@ const CSS = `
 .kcom-funil-bar {
   height: 38px; border-radius: 10px; display: flex; align-items: center;
   padding: 0 14px; color: #fff; font-weight: 700; font-size: 13px;
-  min-width: 90px; transition: width .3s;
+  min-width: 60px; transition: width .3s;
 }
 .kcom-funil-side { font-size: 12px; color: var(--ink-3); flex-shrink: 0; }
 .kcom-funil-side b { color: var(--ink); font-size: 13px; }
@@ -168,15 +200,27 @@ const CSS = `
 const BAR_GRAD_ID = 'kcom-bar-grad'
 const AREA_GRAD_ID = 'kcom-area-grad'
 
+// Presets de período
+function isoHoje(): string { return new Date().toISOString().slice(0, 10) }
+function isoAnoMesDia(a: number, m: number, d: number): string {
+  return `${a}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
 export default function ComercialPage() {
   const router = useRouter()
   const [dados, setDados] = useState<DadosComercial | null>(null)
   const [erro, setErro] = useState('')
+  const [inicio, setInicio] = useState('')
+  const [fim, setFim] = useState('')
+  const [presetAtivo, setPresetAtivo] = useState<string>('tudo')
 
-  function carregar() {
+  const carregar = useCallback((ini: string, f: string) => {
     setDados(null)
     setErro('')
-    fetch('/api/comercial')
+    const params = new URLSearchParams()
+    if (ini && f) { params.set('inicio', ini); params.set('fim', f) }
+    const qs = params.toString()
+    fetch(`/api/comercial${qs ? '?' + qs : ''}`)
       .then(res => {
         if (res.status === 401) { router.push('/login'); return null }
         return res.json()
@@ -187,9 +231,32 @@ export default function ComercialPage() {
         setDados(data as DadosComercial)
       })
       .catch(e => setErro(String(e)))
+  }, [router])
+
+  useEffect(() => { carregar('', '') }, [carregar])
+
+  function aplicarPreset(preset: string) {
+    setPresetAtivo(preset)
+    const hoje = new Date()
+    const ano = hoje.getFullYear()
+    let ini = '', f = ''
+    if (preset === 'tudo') { ini = ''; f = '' }
+    else if (preset === 'ano') { ini = isoAnoMesDia(ano, 1, 1); f = isoHoje() }
+    else if (preset === 'anopassado') { ini = isoAnoMesDia(ano - 1, 1, 1); f = isoAnoMesDia(ano - 1, 12, 31) }
+    else if (preset === '12m') {
+      const d = new Date(hoje); d.setFullYear(d.getFullYear() - 1)
+      ini = d.toISOString().slice(0, 10); f = isoHoje()
+    }
+    setInicio(ini); setFim(f)
+    carregar(ini, f)
   }
 
-  useEffect(() => { carregar() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+  function aplicarManual(novoInicio: string, novoFim: string) {
+    setInicio(novoInicio); setFim(novoFim)
+    setPresetAtivo(novoInicio && novoFim ? 'custom' : 'tudo')
+    if (novoInicio && novoFim) carregar(novoInicio, novoFim)
+    else if (!novoInicio && !novoFim) carregar('', '')
+  }
 
   const tooltipStyle = {
     background: 'var(--surface)', border: '1px solid var(--line)',
@@ -204,6 +271,12 @@ export default function ComercialPage() {
   }
 
   const k = dados?.kpis
+  const temFiltro = !!(dados?.periodo.inicio && dados?.periodo.fim)
+  const labelPeriodo = temFiltro && dados
+    ? `${fmtDataBR(dados.periodo.inicio!)} – ${fmtDataBR(dados.periodo.fim!)}`
+    : 'Histórico completo'
+  const labelComparacao = temFiltro ? 'vs período anterior' : 'vs ano anterior'
+
   const maxCliente = Math.max(...(dados?.topClientes.map(c => c.faturamento) ?? [1]))
   const maxVendedor = Math.max(...(dados?.topVendedores.map(v => v.faturamento) ?? [1]))
 
@@ -212,6 +285,13 @@ export default function ComercialPage() {
 
   const mensalData = dados?.mensal.map(m => ({ ...m, label: nomeMes(m.anomes) })) ?? []
   const anualData = dados?.anual ?? []
+
+  const presets = [
+    { id: 'tudo', label: 'Tudo' },
+    { id: 'ano', label: 'Este ano' },
+    { id: 'anopassado', label: 'Ano passado' },
+    { id: '12m', label: '12 meses' },
+  ]
 
   return (
     <div className="kcom-root">
@@ -225,14 +305,54 @@ export default function ComercialPage() {
         <div className="kcom-topbar">
           <div>
             <h1 className="kcom-title">Visão <em>Comercial</em></h1>
-            <p className="kcom-sub">Faturamento, pipeline e performance de vendas · dados reais Sybase IQ</p>
+            <p className="kcom-sub">Período: <strong>{labelPeriodo}</strong> · dados reais Sybase IQ</p>
           </div>
-          <button className="kcom-refresh" onClick={carregar}>
+          <button className="kcom-refresh" onClick={() => carregar(inicio, fim)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             Atualizar
           </button>
+        </div>
+
+        {/* Filtros de data */}
+        <div className="kcom-filtros">
+          <div className="kcom-presets">
+            {presets.map(p => (
+              <button
+                key={p.id}
+                className={`kcom-preset ${presetAtivo === p.id ? 'active' : ''}`}
+                onClick={() => aplicarPreset(p.id)}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="kcom-date-group">
+            <label>De</label>
+            <input
+              type="date"
+              className="kcom-date-input"
+              value={inicio}
+              max={fim || undefined}
+              onChange={e => aplicarManual(e.target.value, fim)}
+            />
+          </div>
+          <div className="kcom-date-group">
+            <label>Até</label>
+            <input
+              type="date"
+              className="kcom-date-input"
+              value={fim}
+              min={inicio || undefined}
+              onChange={e => aplicarManual(inicio, e.target.value)}
+            />
+          </div>
+          {temFiltro && (
+            <button className="kcom-refresh" onClick={() => aplicarPreset('tudo')}>
+              Limpar
+            </button>
+          )}
         </div>
 
         {erro && (
@@ -244,26 +364,38 @@ export default function ComercialPage() {
         {/* KPIs */}
         <div className="kcom-kpi-grid">
           <div className="kcom-kpi hero">
-            <div className="kcom-kpi-label">Faturamento total</div>
+            <div className="kcom-kpi-label">Faturamento {temFiltro ? 'do período' : 'total'}</div>
             {k ? (
               <>
-                <div className="kcom-kpi-val">{fmtMoeda(k.faturamentoTotal)}</div>
-                <div className="kcom-kpi-sub">Notas fiscais emitidas · histórico completo</div>
+                <div className="kcom-kpi-val">{fmtMoeda(k.faturamentoPeriodo)}</div>
+                <div className="kcom-kpi-sub">
+                  {k.faturamentoAnterior > 0 && (
+                    <span className={`kcom-chip ${k.crescimentoPoP >= 0 ? 'up' : 'down'}`}>
+                      {k.crescimentoPoP >= 0 ? '▲' : '▼'} {Math.abs(k.crescimentoPoP).toFixed(1)}%
+                    </span>
+                  )}
+                  {labelComparacao}
+                </div>
               </>
             ) : <div className="kcom-sk" style={{ height: 40 }} />}
           </div>
 
           <div className="kcom-kpi">
-            <div className="kcom-kpi-label">Faturamento {anualData.at(-1)?.ano ?? 'ano corrente'}</div>
+            <div className="kcom-kpi-label">Notas emitidas</div>
             {k ? (
               <>
-                <div className="kcom-kpi-val">{fmtMoeda(k.faturamentoAnoCorrente)}</div>
-                <div className="kcom-kpi-sub">
-                  <span className={`kcom-chip ${k.crescimentoYoY >= 0 ? 'up' : 'down'}`}>
-                    {k.crescimentoYoY >= 0 ? '▲' : '▼'} {Math.abs(k.crescimentoYoY).toFixed(1)}%
-                  </span>
-                  vs ano anterior
-                </div>
+                <div className="kcom-kpi-val">{fmtNum(k.notasPeriodo)}</div>
+                <div className="kcom-kpi-sub">Documentos no período</div>
+              </>
+            ) : <div className="kcom-sk" style={{ height: 40 }} />}
+          </div>
+
+          <div className="kcom-kpi">
+            <div className="kcom-kpi-label">Ticket médio</div>
+            {k ? (
+              <>
+                <div className="kcom-kpi-val">{fmtMoeda(k.ticketMedio)}</div>
+                <div className="kcom-kpi-sub">Por nota fiscal</div>
               </>
             ) : <div className="kcom-sk" style={{ height: 40 }} />}
           </div>
@@ -289,26 +421,6 @@ export default function ComercialPage() {
           </div>
 
           <div className="kcom-kpi">
-            <div className="kcom-kpi-label">Clientes ativos</div>
-            {k ? (
-              <>
-                <div className="kcom-kpi-val">{fmtNum(k.clientesAtivos)}</div>
-                <div className="kcom-kpi-sub">Base cadastral ativa</div>
-              </>
-            ) : <div className="kcom-sk" style={{ height: 40 }} />}
-          </div>
-
-          <div className="kcom-kpi">
-            <div className="kcom-kpi-label">Ticket médio</div>
-            {k ? (
-              <>
-                <div className="kcom-kpi-val">{fmtMoeda(k.ticketMedio)}</div>
-                <div className="kcom-kpi-sub">Por nota fiscal ({anualData.at(-1)?.ano})</div>
-              </>
-            ) : <div className="kcom-sk" style={{ height: 40 }} />}
-          </div>
-
-          <div className="kcom-kpi">
             <div className="kcom-kpi-label">Orçamentos ganhos</div>
             {funil ? (
               <>
@@ -319,11 +431,21 @@ export default function ComercialPage() {
           </div>
 
           <div className="kcom-kpi">
-            <div className="kcom-kpi-label">Notas {anualData.at(-1)?.ano ?? ''}</div>
-            {anualData.length ? (
+            <div className="kcom-kpi-label">Clientes ativos</div>
+            {k ? (
               <>
-                <div className="kcom-kpi-val">{fmtNum(anualData.at(-1)?.notas ?? 0)}</div>
-                <div className="kcom-kpi-sub">Documentos emitidos no ano</div>
+                <div className="kcom-kpi-val">{fmtNum(k.clientesAtivos)}</div>
+                <div className="kcom-kpi-sub">Base cadastral ativa (total)</div>
+              </>
+            ) : <div className="kcom-sk" style={{ height: 40 }} />}
+          </div>
+
+          <div className="kcom-kpi">
+            <div className="kcom-kpi-label">Orçamentos perdidos</div>
+            {funil ? (
+              <>
+                <div className="kcom-kpi-val">{fmtNum(funil.perdidos)}</div>
+                <div className="kcom-kpi-sub">Cancelados / expirados</div>
               </>
             ) : <div className="kcom-sk" style={{ height: 40 }} />}
           </div>
@@ -334,9 +456,11 @@ export default function ComercialPage() {
           <div className="kcom-card">
             <div className="kcom-card-hdr">
               <h3 className="kcom-card-title">Faturamento mensal</h3>
-              <span className="kcom-card-note">Últimos ~24 meses</span>
+              <span className="kcom-card-note">{temFiltro ? 'Dentro do período' : 'Últimos ~24 meses'}</span>
             </div>
-            {mensalData.length ? (
+            {!dados ? <div className="kcom-sk" style={{ height: 260 }} />
+              : mensalData.length === 0 ? <div className="kcom-empty" style={{ height: 260, display: 'grid', placeItems: 'center' }}>Sem dados no período</div>
+              : (
               <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={mensalData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                   <defs>
@@ -346,7 +470,7 @@ export default function ComercialPage() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false} />
-                  <XAxis dataKey="label" {...axisProps} interval={1} />
+                  <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={20} />
                   <YAxis tickFormatter={fmtAxis} {...axisProps} width={42} />
                   <Tooltip
                     contentStyle={tooltipStyle}
@@ -356,7 +480,7 @@ export default function ComercialPage() {
                   <Area type="monotone" dataKey="faturamento" stroke="#3EA8D8" strokeWidth={2.5} fill={`url(#${AREA_GRAD_ID})`} />
                 </AreaChart>
               </ResponsiveContainer>
-            ) : <div className="kcom-sk" style={{ height: 260 }} />}
+            )}
           </div>
 
           <div className="kcom-card">
@@ -364,7 +488,9 @@ export default function ComercialPage() {
               <h3 className="kcom-card-title">Evolução anual</h3>
               <span className="kcom-card-note">Faturamento por ano</span>
             </div>
-            {anualData.length ? (
+            {!dados ? <div className="kcom-sk" style={{ height: 260 }} />
+              : anualData.length === 0 ? <div className="kcom-empty" style={{ height: 260, display: 'grid', placeItems: 'center' }}>Sem dados no período</div>
+              : (
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={anualData} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                   <defs>
@@ -385,7 +511,7 @@ export default function ComercialPage() {
                   <Bar dataKey="faturamento" fill={`url(#${BAR_GRAD_ID})`} radius={[6, 6, 0, 0]} maxBarSize={48} />
                 </BarChart>
               </ResponsiveContainer>
-            ) : <div className="kcom-sk" style={{ height: 260 }} />}
+            )}
           </div>
         </div>
 
@@ -396,7 +522,9 @@ export default function ComercialPage() {
               <h3 className="kcom-card-title">Top 10 clientes</h3>
               <span className="kcom-card-note">Por faturamento</span>
             </div>
-            {dados ? (
+            {!dados ? <div className="kcom-sk" style={{ height: 360 }} />
+              : dados.topClientes.length === 0 ? <div className="kcom-empty">Sem dados no período</div>
+              : (
               <div className="kcom-rank">
                 {dados.topClientes.map((c, i) => (
                   <div className="kcom-rank-row" key={c.nome + i}>
@@ -412,7 +540,7 @@ export default function ComercialPage() {
                   </div>
                 ))}
               </div>
-            ) : <div className="kcom-sk" style={{ height: 360 }} />}
+            )}
           </div>
 
           <div className="kcom-card">
@@ -420,7 +548,9 @@ export default function ComercialPage() {
               <h3 className="kcom-card-title">Top 10 vendedores</h3>
               <span className="kcom-card-note">Por faturamento</span>
             </div>
-            {dados ? (
+            {!dados ? <div className="kcom-sk" style={{ height: 360 }} />
+              : dados.topVendedores.length === 0 ? <div className="kcom-empty">Sem dados no período</div>
+              : (
               <div className="kcom-rank">
                 {dados.topVendedores.map((v, i) => (
                   <div className="kcom-rank-row" key={v.nome + i}>
@@ -436,7 +566,7 @@ export default function ComercialPage() {
                   </div>
                 ))}
               </div>
-            ) : <div className="kcom-sk" style={{ height: 360 }} />}
+            )}
           </div>
         </div>
 
@@ -445,24 +575,24 @@ export default function ComercialPage() {
           <div className="kcom-card">
             <div className="kcom-card-hdr">
               <h3 className="kcom-card-title">Funil de orçamentos</h3>
-              <span className="kcom-card-note">Conversão histórica</span>
+              <span className="kcom-card-note">{temFiltro ? 'No período' : 'Histórico'}</span>
             </div>
             {funil ? (
               <div className="kcom-funil">
                 <div className="kcom-funil-row">
-                  <div className="kcom-funil-bar" style={{ width: `${(funil.convertidos / funilMax) * 100}%`, background: 'linear-gradient(90deg,#16a34a,#22c55e)' }}>
+                  <div className="kcom-funil-bar" style={{ width: `${Math.max((funil.convertidos / funilMax) * 100, 6)}%`, background: 'linear-gradient(90deg,#16a34a,#22c55e)' }}>
                     {fmtNum(funil.convertidos)}
                   </div>
                   <div className="kcom-funil-side"><b>Ganhos</b> · convertidos em pedido</div>
                 </div>
                 <div className="kcom-funil-row">
-                  <div className="kcom-funil-bar" style={{ width: `${(funil.abertos / funilMax) * 100}%`, background: 'linear-gradient(90deg,#4B6FE4,#3EA8D8)' }}>
+                  <div className="kcom-funil-bar" style={{ width: `${Math.max((funil.abertos / funilMax) * 100, 6)}%`, background: 'linear-gradient(90deg,#4B6FE4,#3EA8D8)' }}>
                     {fmtNum(funil.abertos)}
                   </div>
                   <div className="kcom-funil-side"><b>Em aberto</b> · {fmtMoeda(funil.valorPipeline)} em pipeline</div>
                 </div>
                 <div className="kcom-funil-row">
-                  <div className="kcom-funil-bar" style={{ width: `${(funil.perdidos / funilMax) * 100}%`, background: 'linear-gradient(90deg,#dc2626,#f87171)' }}>
+                  <div className="kcom-funil-bar" style={{ width: `${Math.max((funil.perdidos / funilMax) * 100, 6)}%`, background: 'linear-gradient(90deg,#dc2626,#f87171)' }}>
                     {fmtNum(funil.perdidos)}
                   </div>
                   <div className="kcom-funil-side"><b>Perdidos</b> · cancelados/expirados</div>
@@ -476,7 +606,9 @@ export default function ComercialPage() {
               <h3 className="kcom-card-title">Aquisição de clientes</h3>
               <span className="kcom-card-note">Novos cadastros por ano</span>
             </div>
-            {dados ? (
+            {!dados ? <div className="kcom-sk" style={{ height: 160 }} />
+              : dados.novosClientes.length === 0 ? <div className="kcom-empty" style={{ height: 160, display: 'grid', placeItems: 'center' }}>Sem dados no período</div>
+              : (
               <ResponsiveContainer width="100%" height={160}>
                 <BarChart data={dados.novosClientes} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false} />
@@ -495,7 +627,7 @@ export default function ComercialPage() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            ) : <div className="kcom-sk" style={{ height: 160 }} />}
+            )}
           </div>
         </div>
 
@@ -503,16 +635,18 @@ export default function ComercialPage() {
         <div className="kcom-card">
           <div className="kcom-card-hdr">
             <h3 className="kcom-card-title">Top 10 produtos & serviços</h3>
-            <span className="kcom-card-note">Por faturamento total</span>
+            <span className="kcom-card-note">Por faturamento no período</span>
           </div>
-          {dados ? (
+          {!dados ? <div className="kcom-sk" style={{ height: 320 }} />
+            : dados.topProdutos.length === 0 ? <div className="kcom-empty">Sem dados no período</div>
+            : (
             <table className="kcom-tbl">
               <thead>
                 <tr>
                   <th style={{ width: 40 }}>#</th>
                   <th>Produto / Serviço</th>
                   <th className="r">Faturamento</th>
-                  <th className="r" style={{ width: 90 }}>% do total</th>
+                  <th className="r" style={{ width: 90 }}>% do período</th>
                 </tr>
               </thead>
               <tbody>
@@ -521,12 +655,12 @@ export default function ComercialPage() {
                     <td>{i + 1}</td>
                     <td className="name" title={p.nome}>{p.nome}</td>
                     <td className="r val">{fmtMoedaFull(p.faturamento)}</td>
-                    <td className="r">{((p.faturamento / (k?.faturamentoTotal || 1)) * 100).toFixed(1)}%</td>
+                    <td className="r">{((p.faturamento / (k?.faturamentoPeriodo || 1)) * 100).toFixed(1)}%</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          ) : <div className="kcom-sk" style={{ height: 320 }} />}
+          )}
         </div>
 
       </main>

@@ -1,13 +1,14 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
 import { agentQuery } from '@/lib/agent'
 
 export interface DadosComercial {
+  periodo: { inicio: string | null; fim: string | null }
   kpis: {
-    faturamentoTotal: number
-    faturamentoAnoCorrente: number
-    faturamentoAnoAnterior: number
-    crescimentoYoY: number
+    faturamentoPeriodo: number
+    faturamentoAnterior: number
+    crescimentoPoP: number
+    notasPeriodo: number
     pipelineAberto: number
     pipelineQtd: number
     clientesAtivos: number
@@ -25,164 +26,190 @@ export interface DadosComercial {
 
 const ST = 'Status = 100' // status de documento válido/finalizado
 
-// Helpers para extrair valores das linhas
 const num = (v: unknown): number => {
   const n = Number(v)
   return Number.isFinite(n) ? n : 0
 }
 const str = (v: unknown): string => String(v ?? '').trim()
 
-export async function GET() {
+// Valida formato YYYY-MM-DD (evita injeção de SQL)
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+function validData(s: string | null): string | null {
+  if (!s || !DATE_RE.test(s)) return null
+  const d = new Date(s + 'T00:00:00')
+  return Number.isNaN(d.getTime()) ? null : s
+}
+function toISO(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+export async function GET(req: NextRequest) {
   const session = getSession()
   if (!session) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
+  const { searchParams } = new URL(req.url)
+  const inicio = validData(searchParams.get('inicio'))
+  const fim = validData(searchParams.get('fim'))
+  const temFiltro = !!(inicio && fim)
+
+  // Cláusula de período para colunas de data (data inclusiva no fim com +1 dia)
+  const fimMais1 = fim ? toISO(new Date(new Date(fim + 'T00:00:00').getTime() + 86400000)) : null
+  const fInvoice = temFiltro ? `AND io.DateInvoiceOrder >= '${inicio}' AND io.DateInvoiceOrder < '${fimMais1}'` : ''
+  const fEstimate = temFiltro ? `AND eo.DateEstimateOrder >= '${inicio}' AND eo.DateEstimateOrder < '${fimMais1}'` : ''
+  const fCliente = temFiltro ? `AND CreateDate >= '${inicio}' AND CreateDate < '${fimMais1}'` : ''
+
+  // Período anterior de mesma duração (para comparação PoP), só quando há filtro
+  let prevInicio: string | null = null, prevFim: string | null = null
+  if (temFiltro) {
+    const di = new Date(inicio + 'T00:00:00')
+    const df = new Date(fim + 'T00:00:00')
+    const dur = df.getTime() - di.getTime()
+    prevFim = toISO(new Date(di.getTime() - 86400000))
+    prevInicio = toISO(new Date(di.getTime() - 86400000 - dur))
+  }
+
+  // Mensal: dentro do filtro, ou últimos ~24 meses por padrão
+  const fMensal = temFiltro
+    ? `AND io.DateInvoiceOrder >= '${inicio}' AND io.DateInvoiceOrder < '${fimMais1}'`
+    : `AND io.DateInvoiceOrder >= '2024-07-01'`
+
   try {
-    const [
-      qFatTotal,
-      qFatAnual,
-      qFatMensal,
-      qTopClientes,
-      qTopVendedores,
-      qTopProdutos,
-      qFunil,
-      qClientesAtivos,
-      qNovosClientes,
-    ] = await Promise.all([
+    const queries = [
+      // 0: faturamento + notas do período
+      agentQuery(`
+        SELECT SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
+        FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
+        JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
+        WHERE io.${ST} ${fInvoice}`, 10),
+      // 1: faturamento anual
       agentQuery(`
         SELECT YEAR(io.DateInvoiceOrder) AS ano, SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
         FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
         JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
-        WHERE io.${ST}
-        GROUP BY YEAR(io.DateInvoiceOrder)`, 100),
-      agentQuery(`
-        SELECT YEAR(io.DateInvoiceOrder) AS ano, SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
-        FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
-        JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
-        WHERE io.${ST} AND YEAR(io.DateInvoiceOrder) >= 2022
+        WHERE io.${ST} ${fInvoice}
         GROUP BY YEAR(io.DateInvoiceOrder)
         ORDER BY ano`, 100),
+      // 2: faturamento mensal
       agentQuery(`
         SELECT YEAR(io.DateInvoiceOrder)*100 + MONTH(io.DateInvoiceOrder) AS anomes,
                SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
         FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
         JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
-        WHERE io.${ST} AND io.DateInvoiceOrder >= '2024-07-01'
+        WHERE io.${ST} ${fMensal}
         GROUP BY YEAR(io.DateInvoiceOrder)*100 + MONTH(io.DateInvoiceOrder)
-        ORDER BY anomes`, 100),
+        ORDER BY anomes`, 200),
+      // 3: top clientes
       agentQuery(`
         SELECT TOP 10 c.Name AS nome, SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
         FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
         JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
         JOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON io.CustomerId = c.Id
-        WHERE io.${ST}
+        WHERE io.${ST} ${fInvoice}
         GROUP BY c.Name
         ORDER BY fat DESC`, 50),
+      // 4: top vendedores
       agentQuery(`
         SELECT TOP 10 sp.Firstname || ' ' || ISNULL(sp.LastName, '') AS nome,
                SUM(ii.TOTAL_SALE_PRICE) AS fat, COUNT(DISTINCT io.Id) AS notas
         FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
         JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
         JOIN veddara.EZ_VEDDARA_SALE_SALESPERSON sp ON io.SalespersonId = sp.Id
-        WHERE io.${ST}
+        WHERE io.${ST} ${fInvoice}
         GROUP BY sp.Firstname, sp.LastName
         ORDER BY fat DESC`, 50),
+      // 5: top produtos
       agentQuery(`
         SELECT TOP 10 ii.Description AS nome, SUM(ii.TOTAL_SALE_PRICE) AS fat
         FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
         JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
-        WHERE io.${ST}
+        WHERE io.${ST} ${fInvoice}
         GROUP BY ii.Description
         ORDER BY fat DESC`, 50),
+      // 6: funil de orçamentos (por data do orçamento)
       agentQuery(`
         SELECT eo.Status, COUNT(DISTINCT eo.Id) AS qtd, SUM(ei.TOTAL_SALE_PRICE) AS valor
         FROM veddara.EZ_VEDDARA_ESTIMATE_ORDER eo
         JOIN veddara.EZ_VEDDARA_ESTIMATE_ITEM ei ON eo.Id = ei.OrderId
+        WHERE 1=1 ${fEstimate}
         GROUP BY eo.Status`, 50),
+      // 7: clientes ativos (cadastral, não temporal)
       agentQuery(`
         SELECT COUNT(*) AS ativos FROM veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER WHERE Status = 1`, 10),
+      // 8: novos clientes por ano
       agentQuery(`
         SELECT YEAR(CreateDate) AS ano, COUNT(*) AS qtd
         FROM veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER
-        WHERE CreateDate IS NOT NULL AND YEAR(CreateDate) >= 2020
+        WHERE CreateDate IS NOT NULL AND YEAR(CreateDate) >= 2020 ${fCliente}
         GROUP BY YEAR(CreateDate)
         ORDER BY ano`, 50),
-    ])
+    ]
 
-    // Faturamento por ano (mapa ano -> valor)
-    const fatPorAno = new Map<number, { fat: number; notas: number }>()
-    for (const r of qFatTotal.rows) {
-      fatPorAno.set(num(r[0]), { fat: num(r[1]), notas: num(r[2]) })
+    // 9: faturamento do período anterior (PoP), só quando há filtro
+    if (temFiltro && prevInicio && prevFim) {
+      const prevFimMais1 = toISO(new Date(new Date(prevFim + 'T00:00:00').getTime() + 86400000))
+      queries.push(agentQuery(`
+        SELECT SUM(ii.TOTAL_SALE_PRICE) AS fat
+        FROM veddara.EZ_VEDDARA_INVOICE_ORDER io
+        JOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId
+        WHERE io.${ST} AND io.DateInvoiceOrder >= '${prevInicio}' AND io.DateInvoiceOrder < '${prevFimMais1}'`, 10))
     }
-    const faturamentoTotal = [...fatPorAno.values()].reduce((s, v) => s + v.fat, 0)
 
-    // Ano corrente = maior ano presente nos dados
-    const anos = [...fatPorAno.keys()].sort((a, b) => b - a)
-    const anoCorrente = anos[0] ?? 0
-    const anoAnterior = anoCorrente - 1
-    const fatAnoCorrente = fatPorAno.get(anoCorrente)?.fat ?? 0
-    const fatAnoAnterior = fatPorAno.get(anoAnterior)?.fat ?? 0
-    const notasAnoCorrente = fatPorAno.get(anoCorrente)?.notas ?? 0
-    const crescimentoYoY = fatAnoAnterior > 0
-      ? ((fatAnoCorrente - fatAnoAnterior) / fatAnoAnterior) * 100
-      : 0
-    const ticketMedio = notasAnoCorrente > 0 ? fatAnoCorrente / notasAnoCorrente : 0
+    const res = await Promise.all(queries)
+    const [qPeriodo, qAnual, qMensal, qClientes, qVendedores, qProdutos, qFunil, qAtivos, qNovos, qPrev] = res
 
-    // Funil de orçamentos
+    const faturamentoPeriodo = num(qPeriodo.rows[0]?.[0])
+    const notasPeriodo = num(qPeriodo.rows[0]?.[1])
+    const ticketMedio = notasPeriodo > 0 ? faturamentoPeriodo / notasPeriodo : 0
+
+    // Crescimento PoP
+    let faturamentoAnterior = 0
+    let crescimentoPoP = 0
+    if (temFiltro && qPrev) {
+      faturamentoAnterior = num(qPrev.rows[0]?.[0])
+      crescimentoPoP = faturamentoAnterior > 0
+        ? ((faturamentoPeriodo - faturamentoAnterior) / faturamentoAnterior) * 100
+        : 0
+    } else {
+      // Sem filtro: compara último ano vs penúltimo a partir do anual
+      const anos = qAnual.rows.map(r => ({ ano: num(r[0]), fat: num(r[1]) })).sort((a, b) => b.ano - a.ano)
+      const atual = anos[0]?.fat ?? 0
+      const ant = anos[1]?.fat ?? 0
+      faturamentoAnterior = ant
+      crescimentoPoP = ant > 0 ? ((atual - ant) / ant) * 100 : 0
+    }
+
+    // Funil
     let convertidos = 0, perdidos = 0, abertos = 0, valorPipeline = 0
     for (const r of qFunil.rows) {
       const st = num(r[0]); const qtd = num(r[1]); const valor = num(r[2])
-      if (st === 100) convertidos += qtd            // finalizado → virou pedido
-      else if (st === 99) perdidos += qtd           // cancelado/perdido
-      else if (st === 2 || st === 1) {              // em aberto
-        abertos += qtd
-        valorPipeline += valor
-      }
+      if (st === 100) convertidos += qtd
+      else if (st === 99) perdidos += qtd
+      else if (st === 2 || st === 1) { abertos += qtd; valorPipeline += valor }
     }
     const winRate = (convertidos + perdidos) > 0
       ? (convertidos / (convertidos + perdidos)) * 100
       : 0
 
     const dados: DadosComercial = {
+      periodo: { inicio, fim },
       kpis: {
-        faturamentoTotal,
-        faturamentoAnoCorrente: fatAnoCorrente,
-        faturamentoAnoAnterior: fatAnoAnterior,
-        crescimentoYoY,
+        faturamentoPeriodo,
+        faturamentoAnterior,
+        crescimentoPoP,
+        notasPeriodo,
         pipelineAberto: valorPipeline,
         pipelineQtd: abertos,
-        clientesAtivos: num(qClientesAtivos.rows[0]?.[0]),
+        clientesAtivos: num(qAtivos.rows[0]?.[0]),
         ticketMedio,
         winRate,
       },
-      anual: qFatAnual.rows.map(r => ({
-        ano: str(r[0]),
-        faturamento: num(r[1]),
-        notas: num(r[2]),
-      })),
-      mensal: qFatMensal.rows.map(r => ({
-        anomes: str(r[0]),
-        faturamento: num(r[1]),
-        notas: num(r[2]),
-      })),
-      topClientes: qTopClientes.rows.map(r => ({
-        nome: str(r[0]),
-        faturamento: num(r[1]),
-        notas: num(r[2]),
-      })),
-      topVendedores: qTopVendedores.rows.map(r => ({
-        nome: str(r[0]),
-        faturamento: num(r[1]),
-        notas: num(r[2]),
-      })),
-      topProdutos: qTopProdutos.rows.map(r => ({
-        nome: str(r[0]),
-        faturamento: num(r[1]),
-      })),
+      anual: qAnual.rows.map(r => ({ ano: str(r[0]), faturamento: num(r[1]), notas: num(r[2]) })),
+      mensal: qMensal.rows.map(r => ({ anomes: str(r[0]), faturamento: num(r[1]), notas: num(r[2]) })),
+      topClientes: qClientes.rows.map(r => ({ nome: str(r[0]), faturamento: num(r[1]), notas: num(r[2]) })),
+      topVendedores: qVendedores.rows.map(r => ({ nome: str(r[0]), faturamento: num(r[1]), notas: num(r[2]) })),
+      topProdutos: qProdutos.rows.map(r => ({ nome: str(r[0]), faturamento: num(r[1]) })),
       funil: { convertidos, perdidos, abertos, valorPipeline },
-      novosClientes: qNovosClientes.rows.map(r => ({
-        ano: str(r[0]),
-        qtd: num(r[1]),
-      })),
+      novosClientes: qNovos.rows.map(r => ({ ano: str(r[0]), qtd: num(r[1]) })),
     }
 
     return NextResponse.json(dados)
