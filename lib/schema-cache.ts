@@ -23,7 +23,7 @@ export async function getSchemaContext(force = false): Promise<string> {
 async function loadAllSchemas(): Promise<TableSchema[]> {
   // Busca lista de tabelas do schema
   const listResult = await agentQuery(
-    `SELECT table_name FROM sys.systable WHERE user_name(creator) = 'pref_aruja_sp' AND table_type IN ('BASE', 'VIEW') ORDER BY table_name`,
+    `SELECT table_name FROM sys.systable WHERE user_name(creator) = 'veddara' AND table_type IN ('BASE', 'VIEW') ORDER BY table_name`,
     1000
   )
 
@@ -35,7 +35,7 @@ async function loadAllSchemas(): Promise<TableSchema[]> {
     const batch = tableNames.slice(i, i + 10)
     const results = await Promise.allSettled(
       batch.map(async name => {
-        const cols = await agentSchema(`pref_aruja_sp.${name}`)
+        const cols = await agentSchema(`veddara.${name}`)
         return { name, columns: cols } as TableSchema
       })
     )
@@ -48,7 +48,7 @@ async function loadAllSchemas(): Promise<TableSchema[]> {
 }
 
 function buildPromptContext(tables: TableSchema[]): string {
-  const lines: string[] = ['## Schema: pref_aruja_sp\n']
+  const lines: string[] = ['## Schema: veddara\n']
 
   for (const t of tables) {
     lines.push(`### ${t.name}`)

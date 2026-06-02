@@ -64,7 +64,7 @@ export default function CatalogoPage() {
           </svg>
           <div>
             <h1 className="text-base font-bold leading-none">Catálogo de Dados</h1>
-            <p className="text-blue-300 text-xs">Dicionário semântico — pref_aruja_sp</p>
+            <p className="text-blue-300 text-xs">Dicionário semântico — veddara</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -201,7 +201,7 @@ export default function CatalogoPage() {
 
               <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
                 <div className="bg-slate-800 px-5 py-4">
-                  <p className="text-xs text-slate-400 font-mono">pref_aruja_sp</p>
+                  <p className="text-xs text-slate-400 font-mono">veddara</p>
                   <h2 className="text-white font-bold font-mono text-lg">{selectedEntry.tabela}</h2>
                 </div>
 
@@ -276,7 +276,7 @@ export default function CatalogoPage() {
                     </p>
                     <pre className="bg-slate-900 text-green-300 text-xs p-4 rounded-lg overflow-x-auto font-mono">
 {`SELECT TOP 10 *
-FROM pref_aruja_sp.${selectedEntry.tabela}`}
+FROM veddara.${selectedEntry.tabela}`}
                     </pre>
                   </div>
                 </div>

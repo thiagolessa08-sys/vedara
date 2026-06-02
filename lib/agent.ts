@@ -54,7 +54,7 @@ export async function agentQuery(sql: string, limit = 500): Promise<QueryResult>
   return res.json()
 }
 
-export async function listSchemaTables(schema = 'pref_aruja_sp'): Promise<string[]> {
+export async function listSchemaTables(schema = 'veddara'): Promise<string[]> {
   const result = await agentQuery(
     `SELECT table_name FROM sys.systable WHERE user_name(creator) = '${schema}' AND table_type IN ('BASE', 'VIEW') ORDER BY table_name`,
     1000

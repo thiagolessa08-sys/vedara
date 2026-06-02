@@ -485,7 +485,7 @@ export default function DashboardPage() {
       const res = await fetch(`/api/db/schema/${encodeURIComponent(table)}`)
       const data = await res.json()
       setSchema(data.columns || [])
-      setSql(`SELECT TOP 100 *\nFROM pref_aruja_sp.${table}`)
+      setSql(`SELECT TOP 100 *\nFROM veddara.${table}`)
     } catch {
       setError('Erro ao carregar schema')
     }
@@ -595,7 +595,7 @@ export default function DashboardPage() {
         {/* Table list */}
         <div className="k-tables-section">
           <div className="k-tables-header">
-            <div className="k-nav-label" style={{ margin: 0 }}>pref_aruja_sp</div>
+            <div className="k-nav-label" style={{ margin: 0 }}>veddara</div>
             <button className="k-reload-btn" onClick={loadTables} title="Recarregar tabelas">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -673,7 +673,7 @@ export default function DashboardPage() {
         <div className="k-topbar">
           <div>
             <h1 className="k-page-title">SQL <em>Explorer</em></h1>
-            <p className="k-page-sub">Sybase IQ — pref_aruja_sp</p>
+            <p className="k-page-sub">Sybase IQ — veddara</p>
           </div>
           <div className="k-topbar-right">
             <div className="k-theme-toggle" role="group" aria-label="Tema">
@@ -714,7 +714,7 @@ export default function DashboardPage() {
               }}
               rows={4}
               className="k-sql-area"
-              placeholder="SELECT TOP 100 * FROM pref_aruja_sp.TABELA"
+              placeholder="SELECT TOP 100 * FROM veddara.TABELA"
             />
             <div>
               <button

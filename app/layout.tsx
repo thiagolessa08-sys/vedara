@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Prefeitura Arujá — Analytics',
-  description: 'Sistema de análise de dados municipais',
+  title: 'Vedara — Analytics',
+  description: 'Sistema de análise de dados Vedara',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

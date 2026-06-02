@@ -8,68 +8,49 @@ export const REGRAS_NEGOCIO = `
 REGRAS DE NEGÓCIO — OBRIGATÓRIAS
 ══════════════════════════════════════════
 
-## REGRA 1 — RECEITA: sempre mostrar bruta, deduções e líquida
+## REGRA 1 — FATURAMENTO: usar EZ_VEDDARA_INVOICE_ORDER + INVOICE_ITEM
 
-Toda vez que o usuário perguntar sobre receita (arrecadação, receita total, receita por tributo,
-receita por secretaria, etc.), você DEVE apresentar TRÊS valores no resultado:
+Toda vez que o usuário perguntar sobre faturamento, receita ou valor faturado,
+use SEMPRE a tabela EZ_VEDDARA_INVOICE_ORDER (cabeçalho) com JOIN em
+EZ_VEDDARA_INVOICE_ITEM (itens) e filtre Status = 1 (notas emitidas, não canceladas).
 
-  1. Receita Bruta     → filtro: CD_TIPO_NATUREZA_RECEITA = 1  (DS = "Receita")
-  2. Deduções          → filtro: CD_TIPO_NATUREZA_RECEITA = 2  (DS = "Dedução")
-  3. Receita Líquida   → Bruta + Deduções
+  • Valor faturado total → SUM(ii.TOTAL_SALE_PRICE) nos itens
+  • NUNCA some valores do cabeçalho diretamente — o detalhe fica nos itens
+  • Sempre filtre: WHERE io.Status = 1  (exclui notas canceladas)
 
-ATENÇÃO — REGRAS CRÍTICAS SOBRE OS VALORES:
-  • Os valores de dedução (CD=2) já são armazenados como NEGATIVOS no banco.
-  • Receita Líquida = Bruta + Deduções  (não Bruta - Deduções, pois deduções já são negativas)
-  • Exemplo: bruta R$ 79,9M + deduções R$ -7,1M = líquida R$ 72,8M
-  • NUNCA use SUM(f.VL_ARRECADACAO_RECEITA) sem filtro — existem registros com CD=-1
-    (Não Informado) que inflam o total. Use SEMPRE filtro explícito IN (1, 2).
+## REGRA 2 — STATUS DAS ENTIDADES
 
-A tabela de resultado deve sempre ter as três colunas, por exemplo:
-  | secretaria | receita_bruta | deducoes | receita_liquida |
+Cada tabela principal tem uma coluna Status com os seguintes valores comuns:
+  • EZ_VEDDARA_INVOICE_ORDER: 1=Emitida, 2=Cancelada
+  • EZ_VEDDARA_SALE_ORDER:    1=Aberto, 2=Faturado, 3=Cancelado
+  • EZ_VEDDARA_ESTIMATE_ORDER: 1=Aberto, 2=Aprovado, 3=Cancelado, 4=Expirado
+  • EZ_VEDDARA_CUSTOMER_CUSTOMER: 1=Ativo, 2=Inativo
+  • EZ_VEDDARA_SALE_SALESPERSON: 1=Ativo, 2=Inativo
 
-Join obrigatório para aplicar o filtro:
-  JOIN pref_aruja_sp.DIM_BIORC_TIPO_NATUREZA_RECEITA tn
-    ON f.SK_TIPO_NATUREZA_RECEITA = tn.SK_TIPO_NATUREZA_RECEITA
+SEMPRE aplique filtro de Status nas consultas de análise:
+  • Clientes ativos: WHERE Status = 1
+  • Notas emitidas: WHERE Status = 1
+  • Pedidos ativos (não cancelados): WHERE Status IN (1, 2)
 
-Query modelo CORRETA para receita com as três colunas:
-  SELECT
-    SUM(CASE WHEN tn.CD_TIPO_NATUREZA_RECEITA = 1 THEN f.VL_ARRECADACAO_RECEITA ELSE 0 END) AS receita_bruta,
-    SUM(CASE WHEN tn.CD_TIPO_NATUREZA_RECEITA = 2 THEN f.VL_ARRECADACAO_RECEITA ELSE 0 END) AS deducoes,
-    SUM(CASE WHEN tn.CD_TIPO_NATUREZA_RECEITA IN (1, 2) THEN f.VL_ARRECADACAO_RECEITA ELSE 0 END) AS receita_liquida
-  FROM pref_aruja_sp.FATO_BIORC_EXECUCAO_RECEITA f
-  JOIN pref_aruja_sp.DIM_BIORC_TIPO_NATUREZA_RECEITA tn
-    ON f.SK_TIPO_NATUREZA_RECEITA = tn.SK_TIPO_NATUREZA_RECEITA
-  JOIN pref_aruja_sp.DIM_BIORC_DATA_CALENDARIO d
-    ON f.SK_DATA_CALENDARIO_ANO = d.SK_DATA_CALENDARIO
-  WHERE d.NO_ANO = 2025
+## REGRA 3 — JOINS PRINCIPAIS
 
-NUNCA retorne apenas um valor total de receita sem mostrar bruta e líquida separadamente.
+Os relacionamentos mais usados:
+  • Cliente ↔ Pedido de Venda:    EZ_VEDDARA_SALE_ORDER.CustomerId = EZ_VEDDARA_CUSTOMER_CUSTOMER.Id
+  • Cliente ↔ Nota Fiscal:        EZ_VEDDARA_INVOICE_ORDER.CustomerId = EZ_VEDDARA_CUSTOMER_CUSTOMER.Id
+  • Vendedor ↔ Pedido de Venda:   EZ_VEDDARA_SALE_ORDER.SalespersonId = EZ_VEDDARA_SALE_SALESPERSON.Id
+  • Cabeçalho ↔ Itens Venda:      EZ_VEDDARA_SALE_ITEM.OrderId = EZ_VEDDARA_SALE_ORDER.Id
+  • Cabeçalho ↔ Itens NF:         EZ_VEDDARA_INVOICE_ITEM.OrderId = EZ_VEDDARA_INVOICE_ORDER.Id
+  • Cabeçalho ↔ Itens Orçamento:  EZ_VEDDARA_ESTIMATE_ITEM.OrderId = EZ_VEDDARA_ESTIMATE_ORDER.Id
+  • Orçamento → Pedido de Venda:  EZ_VEDDARA_ESTIMATE_ORDER.SalesOrderId = EZ_VEDDARA_SALE_ORDER.Id
+  • Pedido → Nota Fiscal:         EZ_VEDDARA_SALE_ORDER.InvoiceId = EZ_VEDDARA_INVOICE_ORDER.Id
 
-## REGRA 2 — SINÔNIMOS: arrecadação = receita
+## REGRA 4 — COMISSÕES
 
-"Arrecadação", "receita", "o que a prefeitura arrecadou", "quanto entrou no caixa" e
-"quanto foi arrecadado" são todos sinônimos — todos se referem à tabela
-FATO_BIORC_EXECUCAO_RECEITA e à coluna VL_ARRECADACAO_RECEITA.
+Comissões ficam nos itens (SALE_ITEM, INVOICE_ITEM, ESTIMATE_ITEM):
+  • CommissionSalesperson         → valor da comissão do vendedor no item
+  • CommissionSalespersonPercentage → percentual de comissão
+  • CommissionAgent               → comissão do agente
+  • CommissionSupervisor          → comissão do supervisor
 
-Quando o usuário usar qualquer uma dessas palavras, aplique exatamente as mesmas
-regras da REGRA 1 (bruta / deduções / líquida).
-
-## REGRA 3 — COLUNAS CORRETAS de DIM_BIORC_NATUREZA_RECEITA
-
-A tabela DIM_BIORC_NATUREZA_RECEITA NÃO tem coluna "DS_CATEGORIA_RECEITA".
-Use SEMPRE os nomes exatos abaixo:
-
-  • DS_CATEGORIA_ECONOMICA_RECEITA  → categoria econômica (ex: Receitas Correntes)
-  • DS_ORIGEM_RECEITA               → origem (ex: Receita Tributária)
-  • DS_ESPECIE_RECEITA              → espécie (ex: Impostos, Taxas)
-  • DS_ALINEA_RECEITA               → alínea (ex: IPTU, ISS, ITBI)
-  • DS_SUBALINEA_RECEITA            → subalínea (nível mais detalhado)
-  • DS_RUBRICA_RECEITA              → rubrica
-  • DS_NATUREZA_RECEITA             → descrição completa da natureza
-
-Erros comuns a evitar:
-  ✗ nr.DS_CATEGORIA_RECEITA        → não existe
-  ✗ nr.DS_TIPO_RECEITA             → não existe nessa tabela
-  ✓ nr.DS_CATEGORIA_ECONOMICA_RECEITA  → correto
-  ✓ nr.DS_ESPECIE_RECEITA              → correto
+Para calcular comissão total de um vendedor, some CommissionSalesperson dos itens.
 `
