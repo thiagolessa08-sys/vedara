@@ -23,10 +23,12 @@ interface ToolEvent {
 }
 
 const SUGESTOES = [
-  'Quais são as maiores despesas por secretaria?',
-  'Mostre o total de despesas por mês em 2025',
-  'Quais fornecedores receberam mais pagamentos?',
-  'Compare empenho, liquidação e pagamento por secretaria',
+  'Qual foi o faturamento total em 2025?',
+  'Quais são os 10 maiores clientes por faturamento?',
+  'Mostre o ranking de vendedores por vendas',
+  'Qual a taxa de conversão dos orçamentos?',
+  'Mostre o faturamento mês a mês em 2025',
+  'Quais produtos ou serviços mais faturaram?',
 ]
 
 const CHART_COLORS = [
@@ -196,8 +198,8 @@ const CSS = `
   line-height: 1.4;
   transition: background .12s, border-color .12s;
 }
-.kc-sugg-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.70); }
-.kc-sugg-btn:hover { background: rgba(255,255,255,0.13); border-color: rgba(255,255,255,0.25); color: #fff; }
+.kc-sugg-btn { background: #f8fafc; border-color: #e8edf3; color: #64748b; }
+.kc-sugg-btn:hover { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
 
 /* Theme toggle */
 .kc-theme-toggle {
@@ -1087,7 +1089,7 @@ export default function ChatPage() {
                 </svg>
               </div>
               <h2>Olá! O que deseja <em>saber?</em></h2>
-              <p>Faça perguntas sobre os dados municipais em português. Vou consultar o banco Sybase IQ e responder com dados reais.</p>
+              <p>Faça perguntas sobre vendas, faturamento, clientes e orçamentos em português. Vou consultar o banco Sybase IQ e responder com dados reais.</p>
               <div className="kc-empty-grid">
                 {SUGESTOES.map(s => (
                   <button key={s} className="kc-sugg-btn" style={{ textAlign: 'left' }} onClick={() => send(s)}>
