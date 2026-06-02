@@ -87,6 +87,17 @@ const SIDEBAR_CSS = `
 
 const NAV_ITEMS = [
   {
+    href: '/comercial',
+    label: 'Comercial',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 3v18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M7 14l3-3 3 3 5-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M18 5h2v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
+  {
     href: '/orcamento',
     label: 'Orçamento',
     icon: (
