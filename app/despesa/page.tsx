@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { AppSidebar } from '@/components/AppSidebar'
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
 } from 'recharts'
@@ -301,59 +302,7 @@ export default function DespesaPage() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── SIDEBAR ── */}
-      <aside className="kdes-sidebar">
-        <div className="kdes-brand">
-          <div className="kdes-brand-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M3 22V10l9-7 9 7v12H3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M9 22v-6h6v6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="kdes-brand-text">
-            <div className="t1">Analytics Municipal</div>
-          </div>
-        </div>
-
-        <div>
-          <div className="kdes-nav-label">Menu</div>
-          <nav className="kdes-nav">
-            <Link href="/orcamento">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15V9M12 15V5M16 15v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              Orçamento
-            </Link>
-            <Link href="/receita">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Receita
-            </Link>
-            <a className="active" href="/despesa">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M8 3v18M16 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              Despesa
-            </a>
-            <Link href="/iptu">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 14v4M10 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              IPTU
-            </Link>
-            <Link href="/chat">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Chat IA
-            </Link>
-            <Link href="/catalogo">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Catálogo
-            </Link>
-            <Link href="/dashboard">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 13l9-9 9 9M5 11v9h14v-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Consulta
-            </Link>
-          </nav>
-        </div>
-
-        <div style={{ marginTop: 'auto', background: 'var(--green-ink)', borderRadius: '16px', padding: '16px', color: '#fff' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, opacity: .7, letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: '6px' }}>Dashboard</div>
-          <div style={{ fontSize: '13.5px', fontWeight: 700, lineHeight: 1.4, marginBottom: '6px' }}>Despesas Municipais</div>
-          <div style={{ fontSize: '11.5px', opacity: .7, lineHeight: 1.5 }}>Execução orçamentária · dados mock</div>
-        </div>
-      </aside>
+      <AppSidebar />
 
       {/* ── MAIN ── */}
       <main className="kdes-main">

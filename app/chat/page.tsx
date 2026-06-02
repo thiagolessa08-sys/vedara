@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { AppSidebar } from '@/components/AppSidebar'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ReferenceLine,
   AreaChart, Area, ResponsiveContainer,
@@ -1025,66 +1026,10 @@ export default function ChatPage() {
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* ── SIDEBAR ── */}
-      <aside className="kc-sidebar">
-
-        {/* Brand */}
-        <div className="kc-brand">
-          <div className="kc-brand-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M3 22V10l9-7 9 7v12H3z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-              <path d="M9 22v-6h6v6" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-            </svg>
-          </div>
-          <div className="kc-brand-text">
-            <div className="t1">Analytics Municipal</div>
-            
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div>
-          <div className="kc-nav-label">Menu</div>
-          <nav className="kc-nav">
-            <Link href="/orcamento">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15V9M12 15V5M16 15v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              Orçamento
-            </Link>
-            <Link href="/receita">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              Receita
-            </Link>
-            <Link href="/despesa">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M8 3v18M16 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              Despesa
-            </Link>
-            <Link href="/iptu">
-              <svg viewBox="0 0 24 24" fill="none"><path d="M3 12l9-9 9 9M5 10v10h14V10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 14v4M10 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
-              IPTU
-            </Link>
-            <a className="active" href="/chat">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Chat IA
-            </a>
-            <Link href="/catalogo">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Catálogo
-            </Link>
-            <Link href="/dashboard">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M3 13l9-9 9 9M5 11v9h14v-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Consulta
-            </Link>
-          </nav>
-        </div>
-
+      <AppSidebar>
         {/* Suggestions */}
         <div className="kc-sugg-section">
-          <div className="kc-nav-label">Sugestões</div>
+          <div className="kc-nav-label" style={{ color: '#a0aec0' }}>Sugestões</div>
           <div className="kc-sugg-list">
             {SUGESTOES.map(s => (
               <button key={s} className="kc-sugg-btn" onClick={() => send(s)}>
@@ -1093,44 +1038,7 @@ export default function ChatPage() {
             ))}
           </div>
         </div>
-
-        {/* Bottom promo */}
-        <div style={{
-          background: 'var(--green-ink)',
-          borderRadius: '16px',
-          padding: '16px',
-          color: '#fff',
-          position: 'relative',
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'radial-gradient(70% 60% at 0% 100%, oklch(0.42 0.11 155 / 0.85), transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-          <div style={{ position: 'relative' }}>
-            {schemaLoaded && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                <span style={{ width: 7, height: 7, borderRadius: '999px', background: 'oklch(0.70 0.18 145)', display: 'inline-block' }} />
-                <span style={{ fontSize: '11.5px', fontWeight: 700, color: 'oklch(0.88 0.08 150)' }}>Schema em cache</span>
-              </div>
-            )}
-            <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'oklch(0.88 0.02 150)', lineHeight: 1.4 }}>
-              Haiku 4.5 · Sybase IQ
-            </p>
-            <button
-              onClick={async () => { await fetch('/api/auth/logout', { method: 'POST' }); router.push('/login') }}
-              style={{
-                background: '#fff', color: 'var(--green-ink)',
-                border: 0, borderRadius: '999px', padding: '7px 16px',
-                fontWeight: 700, fontSize: '12px', fontFamily: 'inherit', cursor: 'pointer',
-              }}
-            >
-              Sair
-            </button>
-          </div>
-        </div>
-      </aside>
+      </AppSidebar>
 
       {/* ── MAIN ── */}
       <div className="kc-main">

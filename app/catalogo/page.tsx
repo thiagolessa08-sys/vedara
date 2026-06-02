@@ -56,21 +56,28 @@ export default function CatalogoPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-blue-900 text-white px-6 py-3 flex items-center justify-between shadow-lg">
-        <div className="flex items-center gap-3">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      <header style={{ background: '#fff', borderBottom: '1px solid #e8edf3', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <svg viewBox="0 0 220 44" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ height: 26, width: 'auto' }}>
+            <defs>
+              <linearGradient id="cat-grad" x1="0" y1="0" x2="220" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stopColor="#4B6FE4"/>
+                <stop offset="50%"  stopColor="#3EA8D8"/>
+                <stop offset="100%" stopColor="#42C9BF"/>
+              </linearGradient>
+            </defs>
+            <text x="0" y="36" fontFamily="'Plus Jakarta Sans', system-ui, sans-serif" fontWeight="800" fontSize="40" letterSpacing="-1" fill="url(#cat-grad)">VEDDARA</text>
           </svg>
+          <div style={{ width: 1, height: 24, background: '#e8edf3' }} />
           <div>
-            <h1 className="text-base font-bold leading-none">Catálogo de Dados</h1>
-            <p className="text-blue-300 text-xs">Dicionário semântico — veddara</p>
+            <h1 style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', margin: 0, lineHeight: 1 }}>Catálogo de Dados</h1>
+            <p style={{ fontSize: 11, color: '#94a3b8', margin: '3px 0 0', fontFamily: 'monospace' }}>veddara</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/orcamento" className="text-blue-300 hover:text-white text-sm transition-colors">Orçamento</Link>
-          <Link href="/chat" className="text-blue-300 hover:text-white text-sm transition-colors">Chat IA</Link>
-          <Link href="/dashboard" className="text-blue-300 hover:text-white text-sm transition-colors">← Dashboard</Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/orcamento" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Orçamento</Link>
+          <Link href="/chat" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Chat IA</Link>
+          <Link href="/dashboard" style={{ color: '#3b6fd4', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>← Dashboard</Link>
         </div>
       </header>
 
