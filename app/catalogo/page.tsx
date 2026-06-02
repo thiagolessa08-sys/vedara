@@ -75,7 +75,7 @@ export default function CatalogoPage() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Link href="/orcamento" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Orçamento</Link>
+          <Link href="/comercial" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Comercial</Link>
           <Link href="/chat" style={{ color: '#64748b', fontSize: 13, textDecoration: 'none', fontWeight: 500 }}>Chat IA</Link>
           <Link href="/dashboard" style={{ color: '#3b6fd4', fontSize: 13, textDecoration: 'none', fontWeight: 600 }}>← Dashboard</Link>
         </div>

@@ -98,44 +98,6 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: '/orcamento',
-    label: 'Orçamento',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M4 19V5M4 19h16M8 15V9M12 15V5M16 15v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/receita',
-    label: 'Receita',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/despesa',
-    label: 'Despesa',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-        <path d="M8 3v18M16 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/iptu',
-    label: 'IPTU',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M3 12l9-9 9 9M5 10v10h14V10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M12 14v4M10 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
     href: '/chat',
     label: 'Chat IA',
     icon: (
