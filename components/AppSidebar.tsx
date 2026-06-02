@@ -20,8 +20,11 @@ const SIDEBAR_CSS = `
 }
 
 .app-sidebar-logo {
-  padding: 4px 6px 8px;
+  padding: 4px 6px 12px;
   border-bottom: 1px solid #f0f4f8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .app-sidebar-logo img {
   height: 32px;
