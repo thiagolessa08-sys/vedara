@@ -12,6 +12,7 @@ import {
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  tools?: ToolEvent[]
 }
 
 interface ToolEvent {
@@ -972,7 +973,8 @@ export default function ChatPage() {
             assistantContent += event.text
             setMessages(prev => {
               const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
+              const last = updated[updated.length - 1]
+              updated[updated.length - 1] = { ...last, role: 'assistant', content: assistantContent }
               return updated
             })
           } else if (event.type === 'tool_start') {
@@ -980,6 +982,12 @@ export default function ChatPage() {
             currentTools.push(tool)
             setToolEvents([...currentTools])
             setSchemaLoaded(true)
+            setMessages(prev => {
+              const updated = [...prev]
+              const last = updated[updated.length - 1]
+              updated[updated.length - 1] = { ...last, role: 'assistant', tools: [...currentTools] }
+              return updated
+            })
           } else if (event.type === 'tool_end') {
             const last = currentTools[currentTools.length - 1]
             if (last) {
@@ -988,11 +996,18 @@ export default function ChatPage() {
               last.error = event.error
             }
             setToolEvents([...currentTools])
+            setMessages(prev => {
+              const updated = [...prev]
+              const lastMsg = updated[updated.length - 1]
+              updated[updated.length - 1] = { ...lastMsg, role: 'assistant', tools: [...currentTools] }
+              return updated
+            })
           } else if (event.type === 'error') {
             assistantContent += '\n' + event.text
             setMessages(prev => {
               const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: assistantContent }
+              const last = updated[updated.length - 1]
+              updated[updated.length - 1] = { ...last, role: 'assistant', content: assistantContent }
               return updated
             })
           }
@@ -1101,7 +1116,6 @@ export default function ChatPage() {
           ) : (
             <>
               {messages.map((msg, i) => {
-                const isLast = i === messages.length - 1
                 const isAssistant = msg.role === 'assistant'
                 return (
                   <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1133,9 +1147,9 @@ export default function ChatPage() {
                       </div>
                     </div>
 
-                    {isLast && isAssistant && toolEvents.length > 0 && (
+                    {isAssistant && msg.tools && msg.tools.length > 0 && (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginLeft: '44px' }}>
-                        {toolEvents.map((t, ti) => <ToolIndicator key={ti} tool={t} />)}
+                        {msg.tools.map((t, ti) => <ToolIndicator key={ti} tool={t} />)}
                       </div>
                     )}
                   </div>
