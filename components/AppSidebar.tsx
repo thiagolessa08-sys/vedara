@@ -161,7 +161,7 @@ export function VeddaraLogo({ height = 34 }: { height?: number }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/veddara-logo.png"
+      src="/logo.png"
       alt="VEDDARA"
       style={{ height, width: 'auto', display: 'block' }}
       onError={() => setErro(true)}
