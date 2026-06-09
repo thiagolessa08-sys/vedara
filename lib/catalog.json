@@ -27,7 +27,8 @@
     "crm medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
     "registro medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
     "conselho regional de medicina": ["EZ_VEDDARA_CUSTOM_VALUE"],
-    "medico": ["EZ_VEDDARA_CUSTOM_VALUE", "EZ_VEDDARA_CUSTOMER_CUSTOMER"],
+    "medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
+    "crm do medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
     "campo personalizado": ["EZ_VEDDARA_CUSTOM_VALUE"],
     "comissao": ["EZ_VEDDARA_SALE_SALESPERSON", "EZ_VEDDARA_SALE_ITEM", "EZ_VEDDARA_ESTIMATE_ITEM", "EZ_VEDDARA_INVOICE_ITEM"],
     "produto": ["EZ_VEDDARA_SALE_ITEM", "EZ_VEDDARA_ESTIMATE_ITEM", "EZ_VEDDARA_INVOICE_ITEM"],
@@ -397,7 +398,7 @@
     },
     {
       "tabela": "EZ_VEDDARA_CUSTOM_VALUE",
-      "descricao": "Campos personalizados (custom fields) vinculados a PEDIDOS DE VENDA e ORÇAMENTOS. O campo mais relevante é o CRM (Conselho Regional de Medicina) do médico associado àquele pedido/orçamento — a Vedara/INDEOV atende médicos, cada cliente é um médico identificado pelo seu CRM. IMPORTANTE: o EntityId NÃO aponta para o cliente diretamente; ele aponta para EZ_VEDDARA_SALE_ORDER.Id (10.086 registros) ou EZ_VEDDARA_ESTIMATE_ORDER.Id (10.622 registros). Para chegar ao cliente, faça o JOIN passando pelo pedido/orçamento.",
+      "descricao": "Campos personalizados (custom fields) vinculados a PEDIDOS DE VENDA e ORÇAMENTOS. O campo mais relevante é o CRM (Conselho Regional de Medicina) do MÉDICO associado àquele pedido/orçamento. ATENÇÃO: o médico (identificado pelo CRM) NÃO é o mesmo que o cliente — o cliente (EZ_VEDDARA_CUSTOMER_CUSTOMER) é quem compra/paga (pode ser órgão, empresa ou pessoa); o médico é apenas o CRM capturado como campo personalizado no pedido/orçamento. O EntityId NÃO aponta para o cliente; aponta para EZ_VEDDARA_SALE_ORDER.Id (10.086 registros) ou EZ_VEDDARA_ESTIMATE_ORDER.Id (10.622 registros). Para chegar ao cliente, faça o JOIN passando pelo pedido/orçamento.",
       "conceitos": ["crm", "crm medico", "registro medico", "conselho regional de medicina", "medico", "campo personalizado", "custom field"],
       "colunas_chave": {
         "FieldId": "UUID da definição do campo personalizado. Os dois campos principais armazenam o CRM do médico (um vinculado a pedidos, outro a orçamentos).",
@@ -412,9 +413,9 @@
         "EZ_VEDDARA_ESTIMATE_ORDER ON EntityId = Id  (e depois ESTIMATE_ORDER.CustomerId = CUSTOMER.Id)"
       ],
       "exemplos_query": [
-        "-- CRM (registro médico) por cliente, via pedido de venda:\nSELECT DISTINCT c.Name AS cliente, cv.Value AS crm\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nJOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'",
-        "-- Quantidade de médicos com e sem CRM cadastrado (nos pedidos):\nSELECT CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END AS situacao, COUNT(*) AS qtd\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nGROUP BY CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END",
-        "-- Distribuição de médicos por UF do CRM (extrai a sigla após a barra):\nSELECT RIGHT(cv.Value, 2) AS uf, COUNT(DISTINCT so.CustomerId) AS medicos\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY RIGHT(cv.Value, 2)\nORDER BY medicos DESC"
+        "-- CRM do médico + cliente do pedido (médico ≠ cliente):\nSELECT DISTINCT c.Name AS cliente, cv.Value AS crm_medico\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nJOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'",
+        "-- Quantidade de pedidos com e sem CRM informado:\nSELECT CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END AS situacao, COUNT(*) AS qtd\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nGROUP BY CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END",
+        "-- Distribuição de CRMs por UF (extrai a sigla após a barra) — conta CRMs distintos, não clientes:\nSELECT RIGHT(cv.Value, 2) AS uf, COUNT(DISTINCT cv.Value) AS qtd_crms\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY RIGHT(cv.Value, 2)\nORDER BY qtd_crms DESC"
       ]
     }
   ]

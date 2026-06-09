@@ -68,9 +68,16 @@ Os relacionamentos mais usados:
 
 ## REGRA 3.1 — CRM DO MÉDICO (Conselho Regional de Medicina)
 
-A Vedara/INDEOV atende MÉDICOS — cada cliente é um médico identificado pelo seu CRM.
+⚠️ MÉDICO ≠ CLIENTE. NÃO confunda os dois:
+  • CLIENTE = EZ_VEDDARA_CUSTOMER_CUSTOMER.Name → quem compra/paga (pode ser órgão
+    público, empresa ou pessoa; ex: DTI, USP, bancos). NUNCA rotule o cliente como "médico".
+  • MÉDICO = identificado pelo CRM em EZ_VEDDARA_CUSTOM_VALUE.Value → é um campo do
+    pedido/orçamento, NÃO uma coluna do cliente.
+
 O CRM fica em EZ_VEDDARA_CUSTOM_VALUE, na coluna **Value**, no formato "número/UF"
-(ex: '143928/SP', '011933/ES'). Quando o médico não tem registro, Value = 'SEMCRM'.
+(ex: '143928/SP', '011933/ES'). Quando não há registro informado, Value = 'SEMCRM'.
+Ao montar uma query, use o alias correto: c.Name AS cliente e cv.Value AS crm (ou crm_medico).
+Nunca escreva "c.Name AS medico".
 
 ATENÇÃO — desambiguação de "CRM":
   • "CRM" / "registro médico" / "conselho" → coluna Value de EZ_VEDDARA_CUSTOM_VALUE
@@ -85,8 +92,8 @@ RELACIONAMENTO (o EntityId NÃO aponta para o cliente diretamente):
   Para chegar ao médico/cliente, passe pelo pedido ou orçamento:
     CUSTOM_VALUE.EntityId = SALE_ORDER.Id  →  SALE_ORDER.CustomerId = CUSTOMER_CUSTOMER.Id
 
-Exemplo (CRM por cliente):
-  SELECT DISTINCT c.Name, cv.Value AS crm
+Exemplo (CRM do médico + cliente do pedido):
+  SELECT DISTINCT c.Name AS cliente, cv.Value AS crm_medico
   FROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv
   JOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id
   JOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id
