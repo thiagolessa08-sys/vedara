@@ -89,8 +89,13 @@ ATENÇÃO — desambiguação de "CRM":
 RELACIONAMENTO (o EntityId NÃO aponta para o cliente diretamente):
   • EZ_VEDDARA_CUSTOM_VALUE.EntityId = EZ_VEDDARA_SALE_ORDER.Id      (CRM no pedido)
   • EZ_VEDDARA_CUSTOM_VALUE.EntityId = EZ_VEDDARA_ESTIMATE_ORDER.Id  (CRM no orçamento)
-  Para chegar ao médico/cliente, passe pelo pedido ou orçamento:
+  Para chegar ao cliente, passe pelo pedido ou orçamento:
     CUSTOM_VALUE.EntityId = SALE_ORDER.Id  →  SALE_ORDER.CustomerId = CUSTOMER_CUSTOMER.Id
+
+  ⚠️ A PARTIR DE NOTA FISCAL: o EntityId NÃO casa com EZ_VEDDARA_INVOICE_ORDER.Id.
+  Ligue a nota ao CRM pelo PEDIDO que a originou:
+    CUSTOM_VALUE.EntityId = INVOICE_ORDER.SaleOrderId   (correto)
+    CUSTOM_VALUE.EntityId = INVOICE_ORDER.Id            (ERRADO — retorna 0 linhas)
 
 Exemplo (CRM do médico + cliente do pedido):
   SELECT DISTINCT c.Name AS cliente, cv.Value AS crm_medico

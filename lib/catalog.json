@@ -409,13 +409,15 @@
         "DT_ATUALIZACAO": "Data de última atualização"
       },
       "joins_comuns": [
-        "EZ_VEDDARA_SALE_ORDER ON EntityId = Id  (e depois SALE_ORDER.CustomerId = CUSTOMER.Id para chegar ao médico/cliente)",
-        "EZ_VEDDARA_ESTIMATE_ORDER ON EntityId = Id  (e depois ESTIMATE_ORDER.CustomerId = CUSTOMER.Id)"
+        "EZ_VEDDARA_SALE_ORDER ON EntityId = Id  (e depois SALE_ORDER.CustomerId = CUSTOMER.Id para chegar ao cliente)",
+        "EZ_VEDDARA_ESTIMATE_ORDER ON EntityId = Id  (e depois ESTIMATE_ORDER.CustomerId = CUSTOMER.Id)",
+        "EZ_VEDDARA_INVOICE_ORDER ON EntityId = INVOICE_ORDER.SaleOrderId  (a nota liga ao CRM pelo pedido que a originou — NUNCA por INVOICE_ORDER.Id, que não casa com EntityId)"
       ],
       "exemplos_query": [
         "-- CRM do médico + cliente do pedido (médico ≠ cliente):\nSELECT DISTINCT c.Name AS cliente, cv.Value AS crm_medico\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nJOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'",
         "-- Quantidade de pedidos com e sem CRM informado:\nSELECT CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END AS situacao, COUNT(*) AS qtd\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nGROUP BY CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END",
-        "-- Distribuição de CRMs por UF (extrai a sigla após a barra) — conta CRMs distintos, não clientes:\nSELECT RIGHT(cv.Value, 2) AS uf, COUNT(DISTINCT cv.Value) AS qtd_crms\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY RIGHT(cv.Value, 2)\nORDER BY qtd_crms DESC"
+        "-- Distribuição de CRMs por UF (extrai a sigla após a barra) — conta CRMs distintos, não clientes:\nSELECT RIGHT(cv.Value, 2) AS uf, COUNT(DISTINCT cv.Value) AS qtd_crms\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY RIGHT(cv.Value, 2)\nORDER BY qtd_crms DESC",
+        "-- Faturamento por CRM/médico a partir das NOTAS FISCAIS (liga pela SaleOrderId, NÃO por io.Id):\nSELECT cv.Value AS crm_medico, c.Name AS cliente, COUNT(DISTINCT io.Id) AS qtd_notas, SUM(ii.TOTAL_SALE_PRICE) AS faturamento\nFROM veddara.EZ_VEDDARA_INVOICE_ORDER io\nJOIN veddara.EZ_VEDDARA_INVOICE_ITEM ii ON io.Id = ii.OrderId\nJOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON io.CustomerId = c.Id\nJOIN veddara.EZ_VEDDARA_CUSTOM_VALUE cv ON cv.EntityId = io.SaleOrderId\nWHERE io.Status = 100 AND cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY cv.Value, c.Name\nORDER BY faturamento DESC"
       ]
     }
   ]
