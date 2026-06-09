@@ -66,6 +66,32 @@ Os relacionamentos mais usados:
   • Orçamento → Pedido de Venda:  EZ_VEDDARA_ESTIMATE_ORDER.SalesOrderId = EZ_VEDDARA_SALE_ORDER.Id
   • Pedido → Nota Fiscal:         EZ_VEDDARA_SALE_ORDER.InvoiceId = EZ_VEDDARA_INVOICE_ORDER.Id
 
+## REGRA 3.1 — CRM DO MÉDICO (Conselho Regional de Medicina)
+
+A Vedara/INDEOV atende MÉDICOS — cada cliente é um médico identificado pelo seu CRM.
+O CRM fica em EZ_VEDDARA_CUSTOM_VALUE, na coluna **Value**, no formato "número/UF"
+(ex: '143928/SP', '011933/ES'). Quando o médico não tem registro, Value = 'SEMCRM'.
+
+ATENÇÃO — desambiguação de "CRM":
+  • "CRM" / "registro médico" / "conselho" → coluna Value de EZ_VEDDARA_CUSTOM_VALUE
+  • "CRM" no sentido de relacionamento/interação/atendimento → EZ_VEDDARA_CRM_RECORD
+  Se o usuário falar em CRM, número do conselho, registro do médico ou UF do médico,
+  use EZ_VEDDARA_CUSTOM_VALUE.Value (NÃO a tabela CRM_RECORD, e NÃO a coluna CRM,
+  que é truncada/malformada).
+
+RELACIONAMENTO (o EntityId NÃO aponta para o cliente diretamente):
+  • EZ_VEDDARA_CUSTOM_VALUE.EntityId = EZ_VEDDARA_SALE_ORDER.Id      (CRM no pedido)
+  • EZ_VEDDARA_CUSTOM_VALUE.EntityId = EZ_VEDDARA_ESTIMATE_ORDER.Id  (CRM no orçamento)
+  Para chegar ao médico/cliente, passe pelo pedido ou orçamento:
+    CUSTOM_VALUE.EntityId = SALE_ORDER.Id  →  SALE_ORDER.CustomerId = CUSTOMER_CUSTOMER.Id
+
+Exemplo (CRM por cliente):
+  SELECT DISTINCT c.Name, cv.Value AS crm
+  FROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv
+  JOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id
+  JOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id
+  WHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'
+
 ## REGRA 4 — COMISSÕES
 
 Comissões ficam nos itens (SALE_ITEM, INVOICE_ITEM, ESTIMATE_ITEM):

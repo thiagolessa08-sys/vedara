@@ -19,9 +19,15 @@
     "nota fiscal": ["EZ_VEDDARA_INVOICE_ORDER", "EZ_VEDDARA_INVOICE_ITEM"],
     "fatura": ["EZ_VEDDARA_INVOICE_ORDER", "EZ_VEDDARA_INVOICE_ITEM"],
     "invoice": ["EZ_VEDDARA_INVOICE_ORDER", "EZ_VEDDARA_INVOICE_ITEM"],
-    "crm": ["EZ_VEDDARA_CRM_RECORD"],
+    "crm relacionamento": ["EZ_VEDDARA_CRM_RECORD"],
     "interacao": ["EZ_VEDDARA_CRM_RECORD"],
     "historico": ["EZ_VEDDARA_CRM_RECORD"],
+    "atendimento": ["EZ_VEDDARA_CRM_RECORD"],
+    "crm": ["EZ_VEDDARA_CUSTOM_VALUE"],
+    "crm medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
+    "registro medico": ["EZ_VEDDARA_CUSTOM_VALUE"],
+    "conselho regional de medicina": ["EZ_VEDDARA_CUSTOM_VALUE"],
+    "medico": ["EZ_VEDDARA_CUSTOM_VALUE", "EZ_VEDDARA_CUSTOMER_CUSTOMER"],
     "campo personalizado": ["EZ_VEDDARA_CUSTOM_VALUE"],
     "comissao": ["EZ_VEDDARA_SALE_SALESPERSON", "EZ_VEDDARA_SALE_ITEM", "EZ_VEDDARA_ESTIMATE_ITEM", "EZ_VEDDARA_INVOICE_ITEM"],
     "produto": ["EZ_VEDDARA_SALE_ITEM", "EZ_VEDDARA_ESTIMATE_ITEM", "EZ_VEDDARA_INVOICE_ITEM"],
@@ -391,23 +397,24 @@
     },
     {
       "tabela": "EZ_VEDDARA_CUSTOM_VALUE",
-      "descricao": "Valores de campos personalizados (custom fields) vinculados a entidades do sistema. Permite armazenar atributos extras em clientes, pedidos e outros registros.",
-      "conceitos": ["campo personalizado", "custom field", "atributo extra"],
+      "descricao": "Campos personalizados (custom fields) vinculados a PEDIDOS DE VENDA e ORÇAMENTOS. O campo mais relevante é o CRM (Conselho Regional de Medicina) do médico associado àquele pedido/orçamento — a Vedara/INDEOV atende médicos, cada cliente é um médico identificado pelo seu CRM. IMPORTANTE: o EntityId NÃO aponta para o cliente diretamente; ele aponta para EZ_VEDDARA_SALE_ORDER.Id (10.086 registros) ou EZ_VEDDARA_ESTIMATE_ORDER.Id (10.622 registros). Para chegar ao cliente, faça o JOIN passando pelo pedido/orçamento.",
+      "conceitos": ["crm", "crm medico", "registro medico", "conselho regional de medicina", "medico", "campo personalizado", "custom field"],
       "colunas_chave": {
-        "FieldId": "UUID da definição do campo personalizado",
-        "EntityId": "UUID da entidade a que o valor pertence (cliente, pedido, etc.)",
-        "Value": "Valor do campo (sempre string, interpretar conforme tipo do campo)",
-        "CRM": "Identificador do módulo CRM vinculado",
+        "FieldId": "UUID da definição do campo personalizado. Os dois campos principais armazenam o CRM do médico (um vinculado a pedidos, outro a orçamentos).",
+        "EntityId": "UUID da entidade dona do valor. NÃO é o cliente — aponta para EZ_VEDDARA_SALE_ORDER.Id OU EZ_VEDDARA_ESTIMATE_ORDER.Id. Use o pedido/orçamento como ponte para chegar ao cliente.",
+        "Value": "Valor legível do campo. Para o campo de CRM contém o registro médico no formato 'número/UF' (ex: '143928/SP', '011933/ES'). Quando o médico não possui registro, o valor é 'SEMCRM'. USE SEMPRE A COLUNA Value para ler o CRM.",
+        "CRM": "Versão truncada/normalizada do CRM (8 caracteres, malformada — ex: ' R0105272', '/ 1228269'). NÃO confiável para leitura; prefira sempre a coluna Value.",
         "DT_INCLUSAO": "Data de inclusão",
         "DT_ATUALIZACAO": "Data de última atualização"
       },
       "joins_comuns": [
-        "EZ_VEDDARA_CUSTOMER_CUSTOMER ON EntityId = Id",
-        "EZ_VEDDARA_SALE_ORDER ON EntityId = Id",
-        "EZ_VEDDARA_ESTIMATE_ORDER ON EntityId = Id"
+        "EZ_VEDDARA_SALE_ORDER ON EntityId = Id  (e depois SALE_ORDER.CustomerId = CUSTOMER.Id para chegar ao médico/cliente)",
+        "EZ_VEDDARA_ESTIMATE_ORDER ON EntityId = Id  (e depois ESTIMATE_ORDER.CustomerId = CUSTOMER.Id)"
       ],
       "exemplos_query": [
-        "-- Valores de um campo específico:\nSELECT EntityId, Value, DT_INCLUSAO\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE\nWHERE FieldId = '<uuid-do-campo>'\nORDER BY DT_INCLUSAO DESC"
+        "-- CRM (registro médico) por cliente, via pedido de venda:\nSELECT DISTINCT c.Name AS cliente, cv.Value AS crm\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nJOIN veddara.EZ_VEDDARA_CUSTOMER_CUSTOMER c ON so.CustomerId = c.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'",
+        "-- Quantidade de médicos com e sem CRM cadastrado (nos pedidos):\nSELECT CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END AS situacao, COUNT(*) AS qtd\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nGROUP BY CASE WHEN cv.Value = 'SEMCRM' THEN 'Sem CRM' ELSE 'Com CRM' END",
+        "-- Distribuição de médicos por UF do CRM (extrai a sigla após a barra):\nSELECT RIGHT(cv.Value, 2) AS uf, COUNT(DISTINCT so.CustomerId) AS medicos\nFROM veddara.EZ_VEDDARA_CUSTOM_VALUE cv\nJOIN veddara.EZ_VEDDARA_SALE_ORDER so ON cv.EntityId = so.Id\nWHERE cv.Value LIKE '%/%' AND cv.Value <> 'SEMCRM'\nGROUP BY RIGHT(cv.Value, 2)\nORDER BY medicos DESC"
       ]
     }
   ]
